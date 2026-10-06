@@ -1,7 +1,3 @@
-# Intent-Trajectory-Driven-Development
-Intent Trajectory Driven Development it´s my actual way to develop
-
-
 # Intent Trajectory Driven Development
 
 Esse é o documento que estou fazendo depois que percebi a forma que comecei esse módulo vertical, praticamente o inverso do
@@ -9,9 +5,9 @@ que fiz nesses meus 24 anos de profissão como DevWeb FullStack.
 
 > Posso definir 2 categorias das formas que eu usava: **API Design-first**(Documentation-Driven Development) e **Schema-first**.
 
-IMHO, o Design-first é uma evolução do Schema-first, pois na mesma etapa você já une o Schema com a API, e faz os schemas serem gerados baseado no  
+Agora não faço mais nenhum dos dois. Por isso vou documentar aqui a criação das Skills para poder reproduzir esse padrão em qualquer módulo/sistema 
 
-## Etapa 0 - Intent Trajectory Destiny
+## Intent Trajectory Destiny
 
 Para iniciar o projeto você definir o que o sistema precisa ter para entregar para seu cliente/usuário.
 Falando no meu contexto, sistemas empresariais, Precisa definir o que o sistema/empresa precisa ter para poder vender/entregar 
