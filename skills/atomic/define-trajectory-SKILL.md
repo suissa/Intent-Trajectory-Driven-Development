@@ -20,4 +20,4 @@ A declared Trajectory.
 implementation ⊨ trajectory ⊨ behavior ⊨ intent ⊨ destiny.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
