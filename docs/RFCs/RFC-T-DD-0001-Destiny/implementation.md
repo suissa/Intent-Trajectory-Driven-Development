@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0001
+# Implementation — RFC-T-DD-0001
 
 The Destiny stage is represented in the DSL by the `D:` declaration.
 
