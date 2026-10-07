@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const compiler = new URL("./compiler.mjs", import.meta.url).pathname;
@@ -63,5 +63,16 @@ const malformed = run(malformedConstraint, join(root, "malformed"));
 assert.notEqual(malformed.status, 0);
 assert.match(malformed.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
 
-rmSync(root, { recursive: true, force: true });
 console.log("ITDSL compiler tests: PASS");
+
+const semanticSkill = run(resolve(process.cwd(), "examples/delivery.itdsl"), join(root, "skill-semantic"));
+assert.equal(semanticSkill.status, 0, semanticSkill.stderr);
+const semanticIr = JSON.parse(readFileSync(join(root, "skill-semantic", ".itdsl-ir.json"), "utf8"));
+assert.ok(semanticIr.skill_semantics.length > 0);
+assert.ok(semanticIr.skill_semantics.some((s) => s.pre && s.post && s.from === "searching" && s.to === "assigned"));
+const invalidSkill = join(root, "invalid-skill.itdsl");
+writeFileSync(invalidSkill, ["@logic","D: process → ready","I: actor → run","R: input","B: run","S: ready → done","A: actor { run }","K run {","  in: input","  out: result","  rule: execute","  emit: process.done","  pre: ready ∧","}","E: process.done","T: process.done"].join("\n"));
+const badSkill = run(invalidSkill, join(root, "invalid-skill"));
+assert.notEqual(badSkill.status, 0);
+assert.match(badSkill.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
+rmSync(root, { recursive: true, force: true });
