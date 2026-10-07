@@ -1,0 +1,42 @@
+@support
+
+D: support → opened resolved closed
+I: customer → resolve
+R: subject + message
+
+B: open
+→ diagnose
+→ resolve
+→ close
+
+S:
+  opened
+  → diagnosing
+  → resolved
+  → closed
+
+A:
+  customer { request message }
+  system { diagnose resolve close }
+
+K resolve_case {
+  in: subject + message
+  rule: choose(resolution)
+  out: resolution
+  emit: case.resolved
+}
+
+E:
+  request.received
+  → case.diagnosed
+  → case.resolved
+  → case.closed
+
+T:
+  request.received
+  → case.diagnosed
+  → case.resolved
+  → case.closed
+
+X:
+  ¬ close(case ≠ resolved)
