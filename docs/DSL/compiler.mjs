@@ -2,7 +2,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
-const source=resolve(process.argv[2]||"examples/delivery.itdsl");
+const source=resolve(process.argv[2]||"examples/delivery.tddl");
 const out=resolve(process.argv[3]||"docs/DSL/2typescript/generated");
 const target=process.argv[4]||"typescript";
 const input=readFileSync(source,"utf8");
@@ -210,4 +210,4 @@ if __name__=="__main__": unittest.main(verbosity=2)
 const parsed=parse(input);validate(parsed);parsed.skillSemantics=skillSemantics(parsed);parsed.ids=semanticIds(parsed);const ast=normalize(parsed);mkdirSync(out,{recursive:true});
 if(target==="typescript"){writeFileSync(resolve(out,"generated.ts"),generateTS(ast));writeFileSync(resolve(out,"generated.test.ts"),testTS(ast));}
 else if(target==="python"){writeFileSync(resolve(out,"generated.py"),generatePy(ast));writeFileSync(resolve(out,"test_generated.py"),testPy(ast));}else fail("T-DD-DSL_TARGET","target must be typescript or python");
-writeFileSync(resolve(out,".itdsl-ir.json"),JSON.stringify(ast,null,2)+"\n");console.log(JSON.stringify({ok:true,target,source,output:out}));
+writeFileSync(resolve(out,".tddl-ir.json"),JSON.stringify(ast,null,2)+"\n");console.log(JSON.stringify({ok:true,target,source,output:out}));
