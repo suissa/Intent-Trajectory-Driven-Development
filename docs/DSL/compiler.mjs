@@ -87,7 +87,7 @@ function staticConstraintCheck(a){
  for(var p of parsed)if(p.ast.op==="fact"&&!p.source.startsWith("¬")){if(!a.evidence.some(e=>e.value===p.ast.value))fail("ITDSL_CONSTRAINT_UNSAT","required fact has no evidence: "+p.ast.value);}
  return parsed;
 }
-function skillSemantics(a){return Object.values(a.skills).map(function(k){var f=k.fields;return {name:k.name,input:f.in,output:f.out,rule:f.rule,evidence:f.emit,pre:f.pre?parseConstraint(f.pre):null,post:f.post?parseConstraint(f.post):null,when:f.when?parseConstraint(f.when):null,from:f.from||null,to:f.to||null,requires:f.requires?parseConstraint(f.requires):null,ensures:f.ensures?parseConstraint(f.ensures):null,allows:f.allows?arrows(f.allows):[],forbids:f.forbids?arrows(f.forbids):[]};});
+function skillSemantics(a){return Object.values(a.skills).map(function(k){var f=k.fields;return {name:k.name,input:f.in,output:f.out,rule:f.rule,evidence:f.emit,pre:f.pre?parseConstraint(f.pre):null,post:f.post?parseConstraint(f.post):null,when:f.when?parseConstraint(f.when):null,from:f.from||null,to:f.to||null,requires:f.requires?parseConstraint(f.requires):null,ensures:f.ensures?parseConstraint(f.ensures):null,allows:f.allows?arrows(f.allows):[],forbids:f.forbids?arrows(f.forbids):[]};});}
 function q(x){return JSON.stringify(x);}
 function pyq(x){return q(x).replace(/\btrue\b/g,"True").replace(/\bfalse\b/g,"False").replace(/\bnull\b/g,"None");}
 function generateTS(a){
