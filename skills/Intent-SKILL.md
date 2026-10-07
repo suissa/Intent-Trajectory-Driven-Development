@@ -4,8 +4,8 @@ The Intent Skill teaches the Agent how to turn a request into a semantic Intent 
 
 ## Source
 
-- [ITDD README](../README.md)
-- [ITDD semantic SRFC](../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+- [T-DD README](../README.md)
+- [T-DD semantic SRFC](../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
 - [Recognize Intent Atomic Skill](atomic/recognize-intent-SKILL.md)
 
 ## When to use
