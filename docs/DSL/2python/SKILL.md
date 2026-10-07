@@ -472,3 +472,32 @@ Do not bypass validation, use arbitrary string states, emit undeclared evidence,
 `runtime_behavior ⊨ DSL`
 
 is the final semantic judgment.
+
+
+## 24. Generator and projection failure mitigation
+
+Generation failures are compilation failures, not reasons to weaken the DSL.
+
+Required handling:
+
+| Failure | Meaning | Mitigation |
+|---|---|---|
+| syntax error | source cannot be parsed | fix DSL structure; do not generate |
+| unresolved actor/state/evidence | semantic name has no declaration | add/resolve the declaration |
+| invalid behavior term | behavior shape is outside grammar | correct the behavior expression |
+| unsupported target | generator has no projection | implement the target profile before use |
+| runtime failure | generated Python violates the DSL | fix generator/runtime, not the specification |
+| nondeterministic output | same source produces different output | normalize ordering and serialization |
+| generated tests fail | semantic projection is incomplete | inspect the violated DSL obligation and repair the generator |
+
+A generator must fail closed. A partial Python module is never a successful projection.
+
+CI must verify:
+
+1. compiler validation;
+2. generation;
+3. language classification;
+4. runtime execution;
+5. deterministic regeneration.
+
+Python must preserve finite semantic domains with `StrEnum`, `Literal`, immutable values or equivalent runtime checks. Dynamic typing must not turn a DSL state or actor into an arbitrary string.
