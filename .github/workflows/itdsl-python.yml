@@ -41,5 +41,5 @@ jobs:
         run: |
           tmp="$(mktemp -d)"
           node docs/DSL/compiler.mjs examples/delivery.itdsl "$tmp" python >/dev/null
-          cmp docs/DSL/python/generated/delivery.py "$tmp/delivery.py"
-          cmp docs/DSL/python/generated/test_delivery.py "$tmp/test_delivery.py"
+          cmp docs/DSL/python/generated/generated.py "$tmp/generated.py"
+          cmp docs/DSL/python/generated/test_generated.py "$tmp/test_generated.py"
