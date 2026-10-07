@@ -1,0 +1,39 @@
+name: ITDSL Python
+
+on:
+  push:
+    paths:
+      - "docs/DSL/**"
+      - ".github/workflows/itdsl-python.yml"
+  pull_request:
+    paths:
+      - "docs/DSL/**"
+      - ".github/workflows/itdsl-python.yml"
+
+jobs:
+  generated-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Classify generated language
+        id: classify
+        run: |
+          language="$(python - <<'PY'
+          import json
+          import subprocess
+          result = subprocess.run(
+              ["node", "docs/DSL/classify-generated.mjs", "docs/DSL/python/generated"],
+              check=True,
+              capture_output=True,
+              text=True,
+          )
+          print(json.loads(result.stdout)["language"])
+          PY
+          )"
+          test "$language" = "python"
+      - name: Execute generated Python
+        working-directory: docs/DSL/python/generated
+        run: python -m unittest -v
