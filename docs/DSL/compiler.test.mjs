@@ -28,5 +28,40 @@ const failure = run(invalid, join(root, "invalid"));
 assert.notEqual(failure.status, 0);
 assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
 
+const contradictory = join(root, "contradictory.itdsl");
+writeFileSync(contradictory, [
+  "@logic",
+  "D: process → ready",
+  "I: actor → run",
+  "R: input",
+  "B: run",
+  "S: ready → done",
+  "A: actor { run }",
+  "E: process.started",
+  "T: process.started",
+  "X: ready",
+  "X: ¬ ready"
+].join("\n"));
+const contradiction = run(contradictory, join(root, "contradictory"));
+assert.notEqual(contradiction.status, 0);
+assert.match(contradiction.stderr, /ITDSL_CONSTRAINT_CONTRADICTION/);
+
+const malformedConstraint = join(root, "malformed-constraint.itdsl");
+writeFileSync(malformedConstraint, [
+  "@logic",
+  "D: process → ready",
+  "I: actor → run",
+  "R: input",
+  "B: run",
+  "S: ready → done",
+  "A: actor { run }",
+  "E: process.started",
+  "T: process.started",
+  "X: ready ∧"
+].join("\n"));
+const malformed = run(malformedConstraint, join(root, "malformed"));
+assert.notEqual(malformed.status, 0);
+assert.match(malformed.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
+
 rmSync(root, { recursive: true, force: true });
 console.log("ITDSL compiler tests: PASS");

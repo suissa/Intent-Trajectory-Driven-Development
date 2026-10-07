@@ -255,7 +255,18 @@ K settle {
 
 is inconsistent if the skill has exclusive actor binding.
 
-## 17. Validation precedence
+## 17. Constraint compilation and static satisfiability
+
+The X constraint language is parsed into a Boolean AST before projection. The compiler recognizes conjunction, disjunction, negation, equality, inequality, membership, non-membership, grouping, and opaque predicate atoms. The normalized IR preserves this AST so TypeScript and Python receive the same semantic structure.
+
+Static validation rejects contradictions that can be proven locally, for example:
+
+    X: ready
+    X: ¬ ready
+
+This is stronger than syntax checking but does not pretend that arbitrary first-order satisfiability has been solved. The compiler therefore distinguishes constraint syntax, static contradiction, and future general satisfiability judgments.
+
+## 18. Validation precedence
 
 Recommended order:
 
@@ -263,7 +274,7 @@ Recommended order:
 
 Root causes should be reported before cascading failures.
 
-## 18. Invalidity classes
+## 19. Invalidity classes
 
 - syntax invalid;
 - name invalid;
@@ -277,13 +288,13 @@ Root causes should be reported before cascading failures.
 
 Each class should preserve a stable diagnostic identity.
 
-## 19. Determinism
+## 20. Determinism
 
 The same normalized DSL must produce the same semantic model and diagnostic ordering.
 
 Static validation must not depend on execution scheduling.
 
-## 20. Formal core
+## 21. Formal core
 
 `Valid(P) ⇔ Parse(P) ∧ Resolve(P) ∧ Consistent(P) ∧ Satisfiable(P)`
 
