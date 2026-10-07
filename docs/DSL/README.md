@@ -254,3 +254,9 @@ Validation diagnostics use stable `ITDSL_*` identities. Examples include:
 - `ITDSL_TARGET`: unsupported projection target.
 
 CI must test both failure and success paths, regenerate the projection from source, execute it, and regenerate again to prove deterministic output.
+
+## 13. Semantic Skills
+
+A `K` declaration is now compiled as a semantic unit. Its core is `in → rule → out → emit`, with optional `pre`, `post`, `when`, `from`, `to`, `requires`, `ensures`, `allows`, and `forbids`. Constraint-bearing fields are parsed with the same constraint grammar as `X`, preventing a second, divergent logic language inside skills.
+
+The compiler preserves these conditions in `skill_semantics` in the IR and projects them to TypeScript and Python. This establishes the semantic shape `precondition → authorization → input → rule → transition → postcondition → evidence`.
