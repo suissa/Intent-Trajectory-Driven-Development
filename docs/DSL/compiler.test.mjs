@@ -20,15 +20,7 @@ assert.equal(readFileSync(join(first, "delivery.ts"), "utf8"), readFileSync(join
 assert.equal(readFileSync(join(first, ".itdsl-normalized.json"), "utf8"), readFileSync(join(second, ".itdsl-normalized.json"), "utf8"));
 
 const invalid = join(root, "invalid.itdsl");
-writeFileSync(invalid, "@delivery
-D: delivery → requested
-I: ghost → deliver
-R: pickup + dropoff
-B: request
-S: requested → settled
-A: customer { request }
-E: request.received
-");
+writeFileSync(invalid, ["@delivery","D: delivery → requested","I: ghost → deliver","R: pickup + dropoff","B: request","S: requested → settled","A: customer { request }","E: request.received"].join("\n"));
 const failure = run(invalid, join(root, "invalid"));
 assert.notEqual(failure.status, 0);
 assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
