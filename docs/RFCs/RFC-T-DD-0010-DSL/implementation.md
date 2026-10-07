@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0010
+# Implementation — RFC-T-DD-0010
 
 Normative language artifacts:
 - [DSL README](../../DSL/README.md)
