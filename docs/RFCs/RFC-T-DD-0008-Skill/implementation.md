@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0008
+# Implementation — RFC-T-DD-0008
 
 The current DSL represents skill declarations through semantic capability definitions and the repository's Atomic Skill documentation.
 
