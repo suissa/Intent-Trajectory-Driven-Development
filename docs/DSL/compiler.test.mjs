@@ -31,7 +31,7 @@ assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
 rmSync(root, { recursive: true, force: true });
 console.log("ITDSL compiler tests: PASS");
 
-const semanticSkill = run(join(root, "examples/delivery.itdsl"), join(root, "skill-semantic"), "typescript");
+const semanticSkill = run(resolve(process.cwd(), "examples/delivery.itdsl"), join(root, "skill-semantic"), "typescript");
 assert.equal(semanticSkill.status, 0, semanticSkill.stderr);
 const semanticIr = JSON.parse(readFileSync(join(root, "skill-semantic", ".itdsl-ir.json"), "utf8"));
 assert.ok(semanticIr.skill_semantics.length > 0);
