@@ -1,4 +1,4 @@
-# RFC-ITDD-0011 — Compiler and Semantic Validation
+# RFC-T-DD-0011 — Compiler and Semantic Validation
 
 ## Status
 Normative.
