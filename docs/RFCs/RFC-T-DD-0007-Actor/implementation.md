@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0007
+# Implementation — RFC-T-DD-0007
 
 The DSL uses `A:` with actor capability sets.
 
