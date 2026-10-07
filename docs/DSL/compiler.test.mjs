@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const compiler = new URL("./compiler.mjs", import.meta.url).pathname;
@@ -28,7 +28,6 @@ const failure = run(invalid, join(root, "invalid"));
 assert.notEqual(failure.status, 0);
 assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
 
-rmSync(root, { recursive: true, force: true });
 console.log("ITDSL compiler tests: PASS");
 
 const semanticSkill = run(resolve(process.cwd(), "examples/delivery.itdsl"), join(root, "skill-semantic"), "typescript");
@@ -55,7 +54,9 @@ writeFileSync(invalidSkill, [
   "}",
   "E: process.done",
   "T: process.done"
-].join("\\n"));
+].join("\n"));
 const badSkill = run(invalidSkill, join(root, "invalid-skill"));
 assert.notEqual(badSkill.status, 0);
 assert.match(badSkill.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
+
+rmSync(root, { recursive: true, force: true });
