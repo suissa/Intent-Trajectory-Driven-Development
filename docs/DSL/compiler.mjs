@@ -170,7 +170,7 @@ const chain=[
  ["settle_delivery","delivered","settled",["code","location"],"settlement.completed",["code.validated"]]
 ].map((x,i)=>({skill:x[0],from:x[1],to:x[2],input:x[3],actor:"system",capability:"select",facts:x[5],evidence:[{type:x[4],at:i+1}]}));
 assert.equal(proveTrajectory(chain).conformant,true);
-assert.throws(()=>proveTrajectory(chain.slice(0,-1)),/ITDSL_TRAJECTORY_PROOF_DESTINATION/);
+assert.throws(()=>proveTrajectory(chain.slice(0,-1)),/ITDSL_TRAJECTORY_PROOF_MISSING/);
 assert.throws(()=>proveTrajectory([...chain.slice(0,8),{...chain[8],evidence:[{type:"payment.confirmed",at:9}]},chain[9]]),/ITDSL_CONFORMANCE_EVIDENCE/);
 assert.throws(()=>assertConstraint(false,"forbidden"),/ITDSL_CONSTRAINT:forbidden/);
 console.log("Generic ITDSL TypeScript conformance: PASS");
@@ -196,7 +196,7 @@ class GenericITDSLTests(unittest.TestCase):
    SkillExecution("settle_delivery",State.DELIVERED,State.SETTLED,("code","location"),actor=Actor.SYSTEM,capability="select",facts=("code.validated",),evidence=(Evidence("settlement.completed",10),))
   ]
   self.assertTrue(prove_trajectory(tuple(chain))["conformant"])
-  with self.assertRaisesRegex(ValueError,"ITDSL_TRAJECTORY_PROOF_DESTINATION"): prove_trajectory(tuple(chain[:-1]))
+  with self.assertRaisesRegex(ValueError,"ITDSL_TRAJECTORY_PROOF_MISSING"): prove_trajectory(tuple(chain[:-1]))
  def test_constraint(self):
   with self.assertRaisesRegex(ValueError,"ITDSL_CONSTRAINT:forbidden"): assert_constraint(False,"forbidden")
 if __name__=="__main__": unittest.main(verbosity=2)
