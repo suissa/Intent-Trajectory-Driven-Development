@@ -445,4 +445,4 @@ Trajectory = how that behavior evolves through states/evidence
 Record     = one occurrence stored in history
 ```
 
-Trajectory History therefore provides the temporal memory layer needed before causal analysis, trajectory clustering, anomaly detection, and predictive behavior analysis. It intentionally does not introduce the separate `BehaviorID` concept.
+Trajectory History therefore provides the temporal memory layer needed before causal analysis, trajectory clustering, anomaly detection, and predictive behavior analysis. It intentionally keeps Behavior as semantic content and leaves identity concerns outside this layer.
