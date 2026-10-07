@@ -19,4 +19,4 @@ A state machine.
 An implementation MUST NOT execute a transition that is not semantically legal.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
