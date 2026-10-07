@@ -292,3 +292,7 @@ Static validation must not depend on execution scheduling.
 P is the DSL program and O is an observed trajectory.
 
 This separates grammar, semantic validity, and runtime conformance, a standard distinction in DSL design. citeturn0search6turn0search1
+
+## 22. Skill semantics
+
+Skills are semantic transformations, not merely named functions. The required core is `in`, `rule`, `out`, and `emit`; optional preconditions, postconditions, guards, state endpoints, requirements, guarantees, authorization and forbidden conditions are compiled into the same IR. Constraint-bearing skill fields use the same Boolean grammar as `X`.
