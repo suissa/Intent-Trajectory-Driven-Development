@@ -271,3 +271,24 @@ A K declaration is a semantic unit, not merely a function signature. Its core re
 The compiler preserves these semantics in skill_semantics and exposes them to TypeScript and Python projections.
 
 Semantic shape: precondition → authorization → input → rule → state transition → postcondition → evidence.
+
+## 14. Trajectory proof
+
+Runtime Skill conformance is the local proof obligation for one semantic transition. Trajectory proof composes those local proofs into a proof of the declared execution path.
+
+The reference projections expose `proveTrajectory` / `prove_trajectory`. A trajectory proof requires:
+
+- every observed Skill execution to conform locally;
+- state transitions to remain legal;
+- preconditions and postconditions to hold using accumulated trajectory facts;
+- emitted evidence to belong to E and remain ordered according to T;
+- every mandatory evidence item to be observed;
+- the execution to reach the terminal state of S.
+
+The resulting judgment is:
+
+`observed trajectory ⊨ declared trajectory ⊨ intent`
+
+This is stronger than validating isolated events. The proof carries facts forward between Skills, so an evidence item established by one Skill can satisfy the precondition of the next Skill.
+
+The delivery example now declares a complete Skill chain from `requested` to `settled`, making the end-to-end proof executable in both TypeScript and Python.

@@ -17,6 +17,8 @@ B: request
 
 S: requested
 → collecting
+→ recognizing
+→ addressing
 → searching
 → assigned
 → awaiting_payment
@@ -41,6 +43,97 @@ K select_courier {
   from: searching
   to: assigned
   emit: courier.selected
+}
+
+K request_delivery {
+  in: pickup + dropoff
+  rule: request delivery
+  out: request
+  from: requested
+  to: collecting
+  emit: request.received
+}
+K recognize_intent {
+  in: request
+  rule: classify intent
+  out: intent
+  from: recognizing
+  to: addressing
+  pre: request.received
+  emit: intent.recognized
+}
+K collect_addresses {
+  in: pickup + dropoff
+  rule: collect addresses
+  out: addresses
+  from: addressing
+  to: searching
+  pre: intent.recognized
+  emit: addresses.collected
+}
+K select_courier {
+  in: couriers + origin
+  rule: min distance
+  out: courier
+  pre: addresses.collected
+  post: courier.selected
+  from: searching
+  to: assigned
+  emit: courier.selected
+}
+K confirm_payment {
+  in: payment
+  rule: confirm payment
+  out: confirmation
+  from: assigned
+  to: awaiting_payment
+  pre: courier.selected
+  emit: payment.confirmed
+}
+K release_delivery {
+  in: confirmation
+  rule: release delivery
+  out: delivery
+  from: awaiting_payment
+  to: paid
+  pre: payment.confirmed
+  emit: delivery.released
+}
+K track_delivery {
+  in: location
+  rule: forward location
+  out: tracking
+  from: paid
+  to: active
+  pre: delivery.released
+  emit: location.received
+}
+K arrive_delivery {
+  in: location
+  rule: forward arrival
+  out: arrival
+  from: active
+  to: arriving
+  pre: location.received
+  emit: location.forwarded
+}
+K validate_delivery {
+  in: code
+  rule: validate code
+  out: validation
+  from: arriving
+  to: delivered
+  pre: location.forwarded
+  emit: code.validated
+}
+K settle_delivery {
+  in: code + location
+  rule: settle delivery
+  out: settlement
+  from: delivered
+  to: settled
+  pre: code.validated
+  emit: settlement.completed
 }
 
 E: request.received
