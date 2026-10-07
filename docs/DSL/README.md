@@ -221,3 +221,36 @@ Compression must remove syntactic noise, never semantic information.
 The fundamental development loop is:
 
 `DESTINY → INTENT → BEHAVIOR → EVIDENCE → CONTRACT → STATE → ACTOR → SKILL → TRAJECTORY → DSL → IMPLEMENT → EXECUTE → OBSERVE → COMPARE ↺`
+
+
+## 11. Compiler pipeline
+
+The repository provides a deterministic reference compiler:
+
+```
+.itdsl source
+→ parse
+→ AST
+→ name/shape/semantic validation
+→ normalized AST
+→ TypeScript or Python projection
+→ language classification
+→ runtime tests
+→ conformance
+```
+
+The canonical delivery source is `examples/delivery.itdsl`. The compiler is `docs/DSL/compiler.mjs`.
+
+The compiler must fail closed. It must never emit a successful projection after a syntax or semantic error.
+
+Validation diagnostics use stable `ITDSL_*` identities. Examples include:
+
+- `ITDSL_SYNTAX_*`: malformed DSL structure;
+- `ITDSL_*_RESOLUTION`: unresolved semantic name;
+- `ITDSL_STATE_*`: invalid state graph;
+- `ITDSL_INVALID_EVIDENCE`: malformed evidence identity;
+- `ITDSL_INVALID_BEHAVIOR`: malformed behavior term;
+- `ITDSL_ACTOR_RESOLUTION`: undeclared intent actor;
+- `ITDSL_TARGET`: unsupported projection target.
+
+CI must test both failure and success paths, regenerate the projection from source, execute it, and regenerate again to prove deterministic output.

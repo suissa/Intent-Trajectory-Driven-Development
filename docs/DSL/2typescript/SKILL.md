@@ -415,3 +415,33 @@ Do not use `any`, unchecked state strings, undeclared evidence, inferred authori
 `runtime_behavior ⊨ DSL`
 
 is the final semantic judgment.
+
+
+## 23. Generator and projection failure mitigation
+
+Generation failures are compilation failures, not reasons to weaken the DSL.
+
+Required handling:
+
+| Failure | Meaning | Mitigation |
+|---|---|---|
+| syntax error | source cannot be parsed | fix DSL structure; do not generate |
+| unresolved actor/state/evidence | semantic name has no declaration | add/resolve the declaration |
+| invalid behavior term | behavior shape is outside grammar | correct the behavior expression |
+| unsupported target | generator has no projection | implement the target profile before use |
+| generated type widening | semantic literals lost in TS | preserve literal types with `as const`, unions or equivalent |
+| runtime failure | projection does not satisfy DSL | fix generator/runtime, not the specification |
+| nondeterministic output | same source produces different output | normalize ordering and serialization |
+| generated tests fail | semantic projection is incomplete | inspect the violated DSL obligation and repair the generator |
+
+A generator must fail closed: no generated artifact is considered valid merely because the generator process exited after partial output.
+
+CI must verify:
+
+1. compiler validation;
+2. generation;
+3. language classification;
+4. runtime execution;
+5. deterministic regeneration.
+
+The TypeScript projection must preserve literal state, actor and capability domains. Do not widen semantic unions to arbitrary strings.
