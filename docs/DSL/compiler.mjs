@@ -45,7 +45,7 @@ function validate(a){
  for(var term of a.trajectory){var base=term.replace(/\*$/g,"");if(!ID.test(base)&&!QUAL.test(base)&&!base.includes("("))fail("ITDSL_TRAJECTORY_SHAPE","invalid trajectory term "+term);}
  return true;}
 function q(x){return JSON.stringify(x);}
-function pyq(x){return q(x).replace(/\\btrue\\b/g,"True").replace(/\\bfalse\\b/g,"False").replace(/\\bnull\\b/g,"None");}
+function pyq(x){return q(x).replace(/\btrue\b/g,"True").replace(/\bfalse\b/g,"False").replace(/\bnull\b/g,"None");}
 function generateTS(a){
  var states=a.states,actors=Object.keys(a.actors),caps=[...new Set(Object.values(a.actors).flat())],ev=a.evidence, tr={};states.forEach(function(s){tr[s]=[]});edges(states).forEach(function(e){tr[e[0]].push(e[1])});
  var skills=Object.values(a.skills).map(function(k){return {name:k.name,fields:k.fields}});
