@@ -16,4 +16,4 @@ A semantic Contract.
 A Contract MUST constrain the Behavior without changing its meaning.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
