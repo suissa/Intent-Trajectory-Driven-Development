@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0005
+# Implementation — RFC-T-DD-0005
 
 Contract semantics are currently expressed through DSL constraints and skill declarations.
 
