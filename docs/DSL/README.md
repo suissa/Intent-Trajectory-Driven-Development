@@ -228,7 +228,7 @@ The fundamental development loop is:
 The repository provides a deterministic reference compiler:
 
 ```
-.itdsl source
+.tddl source
 → parse
 → AST
 → name/shape/semantic validation
@@ -239,7 +239,7 @@ The repository provides a deterministic reference compiler:
 → conformance
 ```
 
-The canonical delivery source is `examples/delivery.itdsl`. The compiler is `docs/DSL/compiler.mjs`.
+The canonical delivery source is `examples/delivery.tddl`. The compiler is `docs/DSL/compiler.mjs`.
 
 The compiler must fail closed. It must never emit a successful projection after a syntax or semantic error.
 
