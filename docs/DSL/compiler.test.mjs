@@ -7,12 +7,14 @@ import { spawnSync } from "node:child_process";
 const compiler = new URL("./compiler.mjs", import.meta.url).pathname;
 const projection = process.argv[2] || "typescript";
 const source = new URL("../../examples/delivery.itdsl", import.meta.url).pathname;
+const support = new URL("../../examples/support.itdsl", import.meta.url).pathname;
 const root = mkdtempSync(join(tmpdir(), "itdsl-"));
 
 function run(src, target) {
   return spawnSync(process.execPath, [compiler, src, target, projection], { encoding: "utf8" });
 }
 
+assert.equal(run(support, join(root, "support")).status, 0);
 const first = join(root, "first");
 const second = join(root, "second");
 assert.equal(run(source, first).status, 0);
