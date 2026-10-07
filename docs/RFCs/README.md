@@ -1,6 +1,6 @@
-# ITDD Semantic RFCs
+# T-DD Semantic RFCs
 
-These Semantic RFCs specify the semantic and technical model of Intent Trajectory Driven Development.
+These Semantic RFCs specify the semantic and technical model of Trajectory-Driven Development.
 
 The normative semantic source of each RFC is `semantic.md`. The corresponding `implementation.md` defines how the semantic contract is realized by this repository.
 
@@ -8,18 +8,18 @@ The normative semantic source of each RFC is `semantic.md`. The corresponding `i
 
 | RFC | Scope |
 |---|---|
-| RFC-ITDD-0001 | Destiny |
-| RFC-ITDD-0002 | Intent |
-| RFC-ITDD-0003 | Behavior |
-| RFC-ITDD-0004 | Evidence |
-| RFC-ITDD-0005 | Contract |
-| RFC-ITDD-0006 | State |
-| RFC-ITDD-0007 | Actor |
-| RFC-ITDD-0008 | Skill |
-| RFC-ITDD-0009 | Trajectory |
-| RFC-ITDD-0010 | Intent Trajectory DSL |
-| RFC-ITDD-0011 | Compiler and semantic validation |
-| RFC-ITDD-0012 | Language projections and conformance |
+| RFC-T-DD-0001 | Destiny |
+| RFC-T-DD-0002 | Intent |
+| RFC-T-DD-0003 | Behavior |
+| RFC-T-DD-0004 | Evidence |
+| RFC-T-DD-0005 | Contract |
+| RFC-T-DD-0006 | State |
+| RFC-T-DD-0007 | Actor |
+| RFC-T-DD-0008 | Skill |
+| RFC-T-DD-0009 | Trajectory |
+| RFC-T-DD-0010 | Trajectory-Driven DSL |
+| RFC-T-DD-0011 | Compiler and semantic validation |
+| RFC-T-DD-0012 | Language projections and conformance |
 
 The refinement invariant is:
 
