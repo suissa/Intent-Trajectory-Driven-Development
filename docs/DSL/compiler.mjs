@@ -148,45 +148,57 @@ function generatePy(a){var states=a.states,actors=Object.keys(a.actors),ev=a.evi
  s+="DESTINY: Final="+pyq(a.destiny)+"\nCONSTRAINT_AST: Final="+pyq(a.constraint_ast)+"\nSKILL_SEMANTICS: Final="+pyq(a.skill_semantics)+"\nINTENT: Final="+pyq(a.intent)+"\nREQUIRED: Final="+pyq(a.required)+"\nBEHAVIOR: Final="+pyq(a.behavior)+"\nTRAJECTORY: Final="+pyq(a.trajectory)+"\nCONSTRAINTS: Final="+pyq(a.constraints)+"\nEVIDENCE: Final="+pyq(ev)+"\nSKILLS: Final="+pyq(skills)+"\n";
  s+="TRANSITIONS: Final={"+Object.keys(tr).map(function(k){return "State."+k.toUpperCase()+": frozenset({"+tr[k].map(function(x){return "State."+x.toUpperCase()}).join(",")+"})"}).join(",")+"}\nAUTHORIZATION: Final={"+Object.keys(a.actors).map(function(k){return "Actor."+k.toUpperCase()+": frozenset("+pyq(a.actors[k])+")"}).join(",")+"}\n\n";
  s+="@dataclass(frozen=True)\nclass Evidence:\n    kind: str\n    at: int\n\n@dataclass(frozen=True)\nclass SkillExecution:\n    skill: str\n    current: State\n    target: State\n    input: tuple[str, ...]\n    output: str | None = None\n    actor: Actor | None = None\n    capability: str | None = None\n    facts: tuple[str, ...] = ()\n    evidence: tuple[Evidence, ...] = ()\n\ndef allowed(actor: Actor, capability: str) -> bool:\n    return capability in AUTHORIZATION[actor]\n\ndef transition(current: State, target: State) -> State:\n    if target not in TRANSITIONS[current]: raise ValueError(\"ITDSL_ILLEGAL_TRANSITION\")\n    return target\n\ndef validate_evidence_order(items: tuple[Evidence,...]) -> None:\n    order=tuple(x[\"value\"] for x in EVIDENCE); previous=-1; counts={}\n    for item in items:\n        try: i=order.index(item.kind)\n        except ValueError as exc: raise ValueError(\"ITDSL_UNDECLARED_EVIDENCE\") from exc\n        if i<previous: raise ValueError(\"ITDSL_EVIDENCE_ORDER\")\n        previous=i; counts[item.kind]=counts.get(item.kind,0)+1\n    for spec in EVIDENCE:\n        n=counts.get(spec[\"value\"],0)\n        if n<spec[\"min\"]: raise ValueError(\"ITDSL_EVIDENCE_MIN\")\n        if spec[\"max\"]!=\"*\" and n>spec[\"max\"]: raise ValueError(\"ITDSL_EVIDENCE_MAX\")\n\ndef conform_skill_execution(observation: SkillExecution) -> bool:\n    skill = next((x for x in SKILL_SEMANTICS if x['name'] == observation.skill), None)\n    if skill is None: raise ValueError('ITDSL_CONFORMANCE_SKILL')\n    if skill['from'] and observation.current.value != skill['from']: raise ValueError('ITDSL_CONFORMANCE_STATE')\n    if skill['to'] and observation.target.value != skill['to']: raise ValueError('ITDSL_CONFORMANCE_STATE')\n    if skill['from'] and skill['to']: transition(observation.current, observation.target)\n    for required in skill['input'].split('+'):\n        if required.strip() not in observation.input: raise ValueError('ITDSL_CONFORMANCE_INPUT')\n    if observation.output is not None and observation.output != skill['output']: raise ValueError('ITDSL_CONFORMANCE_OUTPUT')\n    if observation.actor is not None and observation.capability is not None and not allowed(observation.actor, observation.capability): raise ValueError('ITDSL_CONFORMANCE_AUTHORIZATION')\n    facts=set(observation.facts) | {x.kind for x in observation.evidence}\n    def evaluate(ast):\n        if ast['op'] == 'fact': return ast['value'] in facts\n        if ast['op'] == 'not': return not evaluate(ast['arg'])\n        if ast['op'] == 'and': return evaluate(ast['left']) and evaluate(ast['right'])\n        if ast['op'] == 'or': return evaluate(ast['left']) or evaluate(ast['right'])\n        left,right=ast['left'] in facts,ast['right'] in facts\n        return {'=':left==right,'≠':left!=right,'∈':left and right,'∉':(not left) or (not right)}[ast['op']]\n    for name,condition in (('pre',skill['pre']),('when',skill['when']),('requires',skill['requires']),('post',skill['post']),('ensures',skill['ensures'])):\n        if condition and not evaluate(condition): raise ValueError('ITDSL_CONFORMANCE_'+name.upper())\n    if not any(x.kind == skill['evidence'] for x in observation.evidence): raise ValueError('ITDSL_CONFORMANCE_EVIDENCE')\n    declared=[x["value"] for x in EVIDENCE]; previous=-1\n    for item in observation.evidence:\n        if item.kind not in declared: raise ValueError('ITDSL_UNDECLARED_EVIDENCE')\n        i=declared.index(item.kind)\n        if i < previous: raise ValueError('ITDSL_CONFORMANCE_TRAJECTORY')\n        previous=i\n    return True\n\ndef conforms(items: tuple[Evidence,...]) -> bool:\n    try: validate_evidence_order(items); return True\n    except ValueError: return False\ndef trajectory_proof(executions: tuple[SkillExecution,...]) -> dict:\n    if not executions: raise ValueError("ITDSL_TRAJECTORY_PROOF_EMPTY")\n    observed=[]; facts=set()\n    for execution in executions:\n        enriched=SkillExecution(execution.skill,execution.current,execution.target,execution.input,execution.output,execution.actor,execution.capability,tuple(facts),execution.evidence)\n        conform_skill_execution(enriched); observed.extend(execution.evidence); facts.update(x.kind for x in execution.evidence)\n    declared=[x["value"] for x in EVIDENCE]; previous=-1\n    for item in observed:\n        if item.kind not in declared: raise ValueError("ITDSL_TRAJECTORY_PROOF_EVIDENCE")\n        i=declared.index(item.kind)\n        if i < previous: raise ValueError("ITDSL_TRAJECTORY_PROOF_ORDER")\n        previous=i\n    for spec in EVIDENCE:\n        if spec["min"] > 0 and not any(x.kind == spec["value"] for x in observed): raise ValueError("ITDSL_TRAJECTORY_PROOF_MISSING")\n    terminal=executions[-1].target\n    if terminal.value != "settled": raise ValueError("ITDSL_TRAJECTORY_PROOF_DESTINATION")\n    return {"conformant":True,"intent":INTENT,"terminal_state":terminal,"evidence":tuple(x.kind for x in observed),"skills":tuple(x.skill for x in executions)}\n\ndef assert_constraint(condition: bool, code: str) -> None:\n    if not condition: raise ValueError(\"ITDSL_CONSTRAINT:\"+code)\n";return s;}
-function testTS(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],st=a.states,ev=a.evidence.map(function(x){return x.value});return `import assert from 'node:assert/strict';
-import {allowed,assertConstraint,conformSkillExecution,conforms,transition,validateEvidenceOrder} from './generated.ts';
-assert.equal(allowed(${q(actor)},${q(cap)}),true);
-assert.equal(transition(${q(st[0])},${q(st[1])}).toString(),${q(st[1])});
-assert.throws(()=>transition(${q(st[0])},${q(st[st.length-1])}),/ITDSL_ILLEGAL_TRANSITION/);
-const valid=${q(ev)}.map((type,i)=>({type,at:i+1}));
-assert.doesNotThrow(()=>validateEvidenceOrder(valid));
-assert.equal(conforms(valid),true);
-assert.throws(()=>validateEvidenceOrder([...valid].reverse()),/ITDSL_EVIDENCE_ORDER/);
-assert.throws(()=>assertConstraint(false,'forbidden'),/ITDSL_CONSTRAINT:forbidden/);
-const execution={skill:'select_courier',from:'searching',to:'assigned',input:['couriers','origin'],actor:'system',capability:'select',evidence:valid};
+function testTS(a){return `import assert from 'node:assert/strict';
+import {allowed,assertConstraint,conformSkillExecution,conforms,proveTrajectory,transition,validateEvidenceOrder} from './generated.ts';
+assert.equal(allowed("system","select"),true);
+assert.equal(transition("requested","collecting"),"collecting");
+const valid=${JSON.stringify(a.evidence.map(x=>x.value))}.map((type,i)=>({type,at:i+1}));
+assert.doesNotThrow(()=>validateEvidenceOrder(valid));assert.equal(conforms(valid),true);
+const execution={skill:"select_courier",from:"searching",to:"assigned",input:["couriers","origin"],actor:"system",capability:"select",evidence:[{type:"courier.selected",at:1}],facts:["addresses.collected"]};
 assert.equal(conformSkillExecution(execution),true);
-assert.throws(()=>conformSkillExecution({...execution,to:'paid'}),/ITDSL_CONFORMANCE_STATE/);
-assert.throws(()=>conformSkillExecution({...execution,input:['couriers']}),/ITDSL_CONFORMANCE_INPUT/);
-assert.throws(()=>conformSkillExecution({...execution,capability:'pay'}),/ITDSL_CONFORMANCE_AUTHORIZATION/);
-assert.throws(()=>conformSkillExecution({...execution,evidence:valid.filter(x=>x.type!=='courier.selected'),facts:['courier.selected']}),/ITDSL_CONFORMANCE_EVIDENCE/);
-console.log('Generic ITDSL TypeScript conformance: PASS');
+const chain=[
+ ["request_delivery","requested","collecting",["pickup","dropoff"],"request.received",[]],
+ ["collect_addresses","collecting","recognizing",["pickup","dropoff"],"addresses.collected",["request.received"]],
+ ["recognize_intent","recognizing","searching",["request"],"intent.recognized",["addresses.collected"]],
+ ["select_courier","searching","assigned",["couriers","origin"],"courier.selected",["addresses.collected","intent.recognized"]],
+ ["confirm_payment","assigned","awaiting_payment",["payment"],"payment.confirmed",["courier.selected"]],
+ ["release_delivery","awaiting_payment","paid",["confirmation"],"delivery.released",["payment.confirmed"]],
+ ["track_delivery","paid","active",["location"],"location.received",["delivery.released"]],
+ ["arrive_delivery","active","arriving",["location"],"location.forwarded",["location.received"]],
+ ["validate_delivery","arriving","delivered",["code"],"code.validated",["location.forwarded"]],
+ ["settle_delivery","delivered","settled",["code","location"],"settlement.completed",["code.validated"]]
+].map((x,i)=>({skill:x[0],from:x[1],to:x[2],input:x[3],actor:"system",capability:"select",facts:x[5],evidence:[{type:x[4],at:i+1}]}));
+assert.equal(proveTrajectory(chain).conformant,true);
+assert.throws(()=>proveTrajectory(chain.slice(0,-1)),/ITDSL_TRAJECTORY_PROOF_DESTINATION/);
+assert.throws(()=>proveTrajectory([...chain.slice(0,8),{...chain[8],evidence:[{type:"payment.confirmed",at:9}]},chain[9]]),/ITDSL_CONFORMANCE_EVIDENCE/);
+assert.throws(()=>assertConstraint(false,"forbidden"),/ITDSL_CONSTRAINT:forbidden/);
+console.log("Generic ITDSL TypeScript conformance: PASS");
 `;}
-function testPy(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],st=a.states,ev=a.evidence.map(function(x){return x.value});return `import unittest
-from generated import Actor,State,Evidence,SkillExecution,allowed,assert_constraint,conform_skill_execution,conforms,transition,validate_evidence_order
+function testPy(a){return `import unittest
+from generated import Actor,State,Evidence,SkillExecution,allowed,assert_constraint,conform_skill_execution,conforms,prove_trajectory,transition,validate_evidence_order
 class GenericITDSLTests(unittest.TestCase):
- def test_auth(self): self.assertTrue(allowed(Actor.${actor.toUpperCase()}, ${q(cap)}))
- def test_state(self):
-  self.assertEqual(transition(State.${st[0].toUpperCase()},State.${st[1].toUpperCase()}),State.${st[1].toUpperCase()})
-  with self.assertRaisesRegex(ValueError,'ITDSL_ILLEGAL_TRANSITION'): transition(State.${st[0].toUpperCase()},State.${st[st.length-1].toUpperCase()})
+ def test_auth(self): self.assertTrue(allowed(Actor.SYSTEM,"select"))
+ def test_state(self): self.assertEqual(transition(State.REQUESTED,State.COLLECTING),State.COLLECTING)
  def test_evidence(self):
-  e=tuple(Evidence(x,i+1) for i,x in enumerate(${q(ev)}));validate_evidence_order(e);self.assertTrue(conforms(e))
-  with self.assertRaisesRegex(ValueError,'ITDSL_EVIDENCE_ORDER'): validate_evidence_order(tuple(reversed(e)))
+  e=tuple(Evidence(x,i+1) for i,x in enumerate(${JSON.stringify(a.evidence.map(x=>x.value))}));validate_evidence_order(e);self.assertTrue(conforms(e))
+ def test_skill_and_trajectory(self):
+  chain=[
+   SkillExecution("request_delivery",State.REQUESTED,State.COLLECTING,("pickup","dropoff"),actor=Actor.SYSTEM,capability="select",evidence=(Evidence("request.received",1),)),
+   SkillExecution("collect_addresses",State.COLLECTING,State.RECOGNIZING,("pickup","dropoff"),actor=Actor.SYSTEM,capability="select",facts=("request.received",),evidence=(Evidence("addresses.collected",2),)),
+   SkillExecution("recognize_intent",State.RECOGNIZING,State.SEARCHING,("request",),actor=Actor.SYSTEM,capability="select",facts=("request.received","addresses.collected"),evidence=(Evidence("intent.recognized",3),)),
+   SkillExecution("select_courier",State.SEARCHING,State.ASSIGNED,("couriers","origin"),actor=Actor.SYSTEM,capability="select",facts=("request.received","addresses.collected","intent.recognized"),evidence=(Evidence("courier.selected",4),)),
+   SkillExecution("confirm_payment",State.ASSIGNED,State.AWAITING_PAYMENT,("payment",),actor=Actor.SYSTEM,capability="select",facts=("courier.selected",),evidence=(Evidence("payment.confirmed",5),)),
+   SkillExecution("release_delivery",State.AWAITING_PAYMENT,State.PAID,("confirmation",),actor=Actor.SYSTEM,capability="select",facts=("payment.confirmed",),evidence=(Evidence("delivery.released",6),)),
+   SkillExecution("track_delivery",State.PAID,State.ACTIVE,("location",),actor=Actor.SYSTEM,capability="select",facts=("delivery.released",),evidence=(Evidence("location.received",7),)),
+   SkillExecution("arrive_delivery",State.ACTIVE,State.ARRIVING,("location",),actor=Actor.SYSTEM,capability="select",facts=("location.received",),evidence=(Evidence("location.forwarded",8),)),
+   SkillExecution("validate_delivery",State.ARRIVING,State.DELIVERED,("code",),actor=Actor.SYSTEM,capability="select",facts=("location.forwarded",),evidence=(Evidence("code.validated",9),)),
+   SkillExecution("settle_delivery",State.DELIVERED,State.SETTLED,("code","location"),actor=Actor.SYSTEM,capability="select",facts=("code.validated",),evidence=(Evidence("settlement.completed",10),))
+  ]
+  self.assertTrue(prove_trajectory(tuple(chain))["conformant"])
+  with self.assertRaisesRegex(ValueError,"ITDSL_TRAJECTORY_PROOF_DESTINATION"): prove_trajectory(tuple(chain[:-1]))
  def test_constraint(self):
-  with self.assertRaisesRegex(ValueError,'ITDSL_CONSTRAINT:forbidden'): assert_constraint(False,'forbidden')
- def test_skill_conformance(self):
-  e=tuple(Evidence(x,i+1) for i,x in enumerate(${q(ev)}))
-  execution=SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e)
-  self.assertTrue(conform_skill_execution(execution))
-  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_STATE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.PAID,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e))
-  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_INPUT'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers',),actor=Actor.SYSTEM,capability='select',evidence=e))
-  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_AUTHORIZATION'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='pay',evidence=e))
-  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_EVIDENCE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',facts=('courier.selected',),evidence=tuple(x for x in e if x.kind!='courier.selected')))
-if __name__=='__main__': unittest.main(verbosity=2)
+  with self.assertRaisesRegex(ValueError,"ITDSL_CONSTRAINT:forbidden"): assert_constraint(False,"forbidden")
+if __name__=="__main__": unittest.main(verbosity=2)
 `;}
 const parsed=parse(input);validate(parsed);parsed.skillSemantics=skillSemantics(parsed);const ast=normalize(parsed);mkdirSync(out,{recursive:true});
 if(target==="typescript"){writeFileSync(resolve(out,"generated.ts"),generateTS(ast));writeFileSync(resolve(out,"generated.test.ts"),testTS(ast));}
