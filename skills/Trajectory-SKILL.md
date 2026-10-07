@@ -4,9 +4,9 @@ The Trajectory Skill teaches the Agent how to compose and execute the Atomic Ski
 
 ## Source
 
-- [ITDD README](../README.md)
-- [ITDD semantic SRFC](../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
-- [ITDD Skill SRFC](../docs/SRFCs/SRFC-ITDD-Skill-Model.md)
+- [T-DD README](../README.md)
+- [T-DD semantic SRFC](../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
+- [T-DD Skill SRFC](../docs/SRFCs/SRFC-T-DD-Skill-Model.md)
 
 ## Atomic Skill sequence
 
