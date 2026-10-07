@@ -1,8 +1,8 @@
-# Intent Trajectory DSL → Python Skill
+# Trajectory-Driven DSL → Python Skill
 
 ## 1. Purpose
 
-This is the normative projection of ITDSL into Python.
+This is the normative projection of T-DD-DSL into Python.
 
 For DSL specification P and implementation Y:
 
