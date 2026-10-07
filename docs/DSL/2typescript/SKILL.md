@@ -1,8 +1,8 @@
-# Intent Trajectory DSL → TypeScript Skill
+# Trajectory-Driven DSL → TypeScript Skill
 
 ## 1. Purpose
 
-This is the normative projection of ITDSL into TypeScript.
+This is the normative projection of T-DD-DSL into TypeScript.
 
 The objective is semantic preservation, not textual translation.
 
