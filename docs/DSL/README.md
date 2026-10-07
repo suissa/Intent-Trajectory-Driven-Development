@@ -302,7 +302,7 @@ The artifact identifies the semantic declaration independently of a runtime proc
 
 ```text
 TrajectoryID = identity of the declared trajectory
-BehaviorID   = identity of the declared behavior
+Behavior   = identity of the declared behavior
 ```
 
 The reference compiler derives deterministic identifiers from the normalized semantic declarations. They are stable for the same declaration and change when the declaration changes.
@@ -312,7 +312,7 @@ The artifact records:
 - `version`;
 - `conformant`;
 - `trajectoryId` / `trajectory_id`;
-- `behaviorId` / `behavior_id`;
+- `behavior` / `behavior`;
 - intent;
 - start and end timestamps when runtime provenance supplies them;
 - per-step provenance (`timestamp`, `source`, `sequence`);
@@ -345,11 +345,11 @@ The resulting relation is:
 ```text
 ProofArtifact
   ⊨ TrajectoryID
-  ⊨ BehaviorID
+  ⊨ Behavior
   ⊨ Intent
 ```
 
-This is the foundation for later integration with trajectory history, BehaviorID/TrajectoryID indexing, causal analysis, and replay without coupling the DSL compiler to a particular observability backend.
+This is the foundation for later integration with trajectory history, Behavior/TrajectoryID indexing, causal analysis, and replay without coupling the DSL compiler to a particular observability backend.
 
 
 ## 16. Proof artifact persistence and replay
@@ -362,7 +362,7 @@ The reference projections expose:
 - `deserializeTrajectoryProof` / `deserialize_trajectory_proof`;
 - `replayTrajectoryProof` / `replay_trajectory_proof`.
 
-Serialization preserves the proof artifact as a language-neutral JSON representation. Deserialization is fail-closed: the artifact version and its `TrajectoryID` and `BehaviorID` must match the current semantic declaration.
+Serialization preserves the proof artifact as a language-neutral JSON representation. Deserialization is fail-closed: the artifact version and its `TrajectoryID` and `Behavior` must match the current semantic declaration.
 
 Replay executes the same conformance proof against a new observation sequence and verifies that the resulting semantic identity and observed Skill/evidence sequence remain compatible with the persisted artifact.
 
@@ -391,8 +391,58 @@ The important invariant is:
 ```text
 persisted ProofArtifact
   ⊨ current TrajectoryID
-  ⊨ current BehaviorID
+  ⊨ current Behavior
   ⊨ replayed trajectory
 ```
 
 An artifact from a different semantic declaration must not silently replay against the current declaration. This establishes the integrity boundary required before introducing trajectory history and cross-execution causal analysis.
+
+
+## 17. Trajectory History
+
+The Proof Artifact represents one observed execution. Trajectory History aggregates multiple Proof Artifacts without coupling the semantic model to a database or observability backend.
+
+The reference projections expose:
+
+- `createTrajectoryHistory` / `create_trajectory_history`;
+- `appendTrajectoryHistory` / `append_trajectory_history`;
+- `queryTrajectoryHistory` / `query_trajectory_history`;
+- `compareTrajectoryProofs` / `compare_trajectory_proofs`.
+
+A history record preserves the declared `TrajectoryID`, the declared `Behavior`, temporal provenance, conformance, and the complete Proof Artifact. The history assigns a local monotonically increasing record identifier; this is a history position, not a semantic identity.
+
+The first implementation supports in-memory append-only history and queries by:
+
+- TrajectoryID;
+- time interval using start/end provenance;
+- conformance status.
+
+Comparison is semantic rather than byte-oriented. Two proofs are compared across TrajectoryID, Behavior, states, Skills, and evidence, returning the first dimension that differs.
+
+The model is:
+
+```text
+Proof Artifact
+      ↓
+Trajectory History
+      ├── record
+      ├── record
+      ├── record
+      └── ...
+           ↓
+       temporal query
+           ↓
+       comparison
+           ↓
+    behavioral analysis
+```
+
+The important distinction is:
+
+```text
+Behavior   = what semantic behavior is being realized
+Trajectory = how that behavior evolves through states/evidence
+Record     = one occurrence stored in history
+```
+
+Trajectory History therefore provides the temporal memory layer needed before causal analysis, trajectory clustering, anomaly detection, and predictive behavior analysis. It intentionally does not introduce the separate `BehaviorID` concept.
