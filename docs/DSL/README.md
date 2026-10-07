@@ -257,6 +257,8 @@ CI must test both failure and success paths, regenerate the projection from sour
 
 ## 12. Semantic constraint compilation
 
+The generated IR exposes the normalized Constraint AST as a first-class semantic artifact.
+
 The reference compiler now treats X as a semantic language rather than an opaque string. Constraints are parsed into a normalized Boolean AST, checked for proven contradictions, and preserved in the generated semantic IR. This establishes a boundary between syntax validity, static semantic invalidity, and runtime conformance.
 
 The current static checker is deliberately conservative: it rejects contradictions it can prove locally and rejects malformed expressions, while leaving general theorem proving and arbitrary satisfiability to a future formal backend.
