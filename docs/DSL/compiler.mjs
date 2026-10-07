@@ -20,7 +20,7 @@ function parse(src) {
     const raw=lines[i], line=raw.trim(), n=i+1;
     if(!line || line.startsWith("#")) continue;
     if(line.startsWith("@")){a.annotation=line.slice(1).trim();continue;}
-    const h=line.match(/^([DIRBSKETX]):\s*(.*)$/);
+    const h=line.match(/^([DIRABSKETX]):\s*(.*)$/);
     if(h){
       section=h[1]; const body=h[2];
       if(section==="D") a.destiny=splitArrow(body);
