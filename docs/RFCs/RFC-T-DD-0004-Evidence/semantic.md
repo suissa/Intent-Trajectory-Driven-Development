@@ -1,4 +1,4 @@
-# RFC-ITDD-0004 — Evidence Semantic Model
+# RFC-T-DD-0004 — Evidence Semantic Model
 
 ## Status
 Normative.
