@@ -18,7 +18,7 @@ function parse(src){
   if(line.startsWith("@")){a.annotation=line.slice(1).trim();continue;}
   var h=line.match(/^([DIRABSKETX]):(?:\s*(.*))?$/);
   if(h){section=h[1];var body=(h[2]||"").trim();
-   if(section==="D")a.destiny=arrows(body);
+   if(section==="K" && body){var kh=body.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(!kh)fail("ITDSL_SYNTAX_SKILL","expected skill declaration",n);skill=kh[1];a.skills[skill]={name:skill,fields:{},line:n};continue;} if(section==="D")a.destiny=arrows(body);
    else if(section==="I"){var p=arrows(body);a.intent={actor:p[0],goal:p.slice(1).join("→")};}
    else if(section==="R")a.required=body.split(/\s*\+\s*/).filter(Boolean);
    else if(section==="B")a.behavior=a.behavior.concat(arrows(body));
