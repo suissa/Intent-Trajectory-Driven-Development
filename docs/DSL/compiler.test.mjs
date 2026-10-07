@@ -30,3 +30,32 @@ assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
 
 rmSync(root, { recursive: true, force: true });
 console.log("ITDSL compiler tests: PASS");
+
+const semanticSkill = run(join(root, "examples/delivery.itdsl"), join(root, "skill-semantic"), "typescript");
+assert.equal(semanticSkill.status, 0, semanticSkill.stderr);
+const semanticIr = JSON.parse(readFileSync(join(root, "skill-semantic", ".itdsl-ir.json"), "utf8"));
+assert.ok(semanticIr.skill_semantics.length > 0);
+assert.ok(semanticIr.skill_semantics.some((s) => s.pre && s.post));
+
+const invalidSkill = join(root, "invalid-skill.itdsl");
+writeFileSync(invalidSkill, [
+  "@logic",
+  "D: process → ready",
+  "I: actor → run",
+  "R: input",
+  "B: run",
+  "S: ready → done",
+  "A: actor { run }",
+  "K run {",
+  "  in: input",
+  "  out: result",
+  "  rule: execute",
+  "  emit: process.done",
+  "  pre: ready ∧",
+  "}",
+  "E: process.done",
+  "T: process.done"
+].join("\\n"));
+const badSkill = run(invalidSkill, join(root, "invalid-skill"));
+assert.notEqual(badSkill.status, 0);
+assert.match(badSkill.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
