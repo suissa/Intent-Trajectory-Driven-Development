@@ -18,7 +18,7 @@ from delivery import (
 class GeneratedDeliveryTests(unittest.TestCase):
     def test_request_constraint(self) -> None:
         DeliveryRequest("A", "B").validate()
-        with self.assertRaisesRegex(ValueError, "ITDSL_PICKUP_EQUALS_DROPOFF"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_PICKUP_EQUALS_DROPOFF"):
             DeliveryRequest("A", "A").validate()
 
     def test_state_transition(self) -> None:
@@ -26,7 +26,7 @@ class GeneratedDeliveryTests(unittest.TestCase):
             transition(DeliveryState.REQUESTED, DeliveryState.COLLECTING),
             DeliveryState.COLLECTING,
         )
-        with self.assertRaisesRegex(ValueError, "ITDSL_ILLEGAL_TRANSITION"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_ILLEGAL_TRANSITION"):
             transition(DeliveryState.REQUESTED, DeliveryState.SETTLED)
 
     def test_authorization(self) -> None:
@@ -34,13 +34,13 @@ class GeneratedDeliveryTests(unittest.TestCase):
         self.assertFalse(allowed(Actor.CUSTOMER, "settle"))
 
     def test_forbidden_payment_and_settlement(self) -> None:
-        with self.assertRaisesRegex(ValueError, "ITDSL_RELEASE_BEFORE_PAYMENT"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_RELEASE_BEFORE_PAYMENT"):
             assert_can_release(False)
         assert_can_release(True)
 
-        with self.assertRaisesRegex(ValueError, "ITDSL_INVALID_CODE"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_INVALID_CODE"):
             assert_can_settle(False, True)
-        with self.assertRaisesRegex(ValueError, "ITDSL_NOT_AT_DROPOFF"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_NOT_AT_DROPOFF"):
             assert_can_settle(True, False)
         assert_can_settle(True, True)
 
@@ -72,11 +72,11 @@ class GeneratedDeliveryTests(unittest.TestCase):
             Evidence("payment.confirmed", 1),
             Evidence("request.received", 2),
         )
-        with self.assertRaisesRegex(ValueError, "ITDSL_EVIDENCE_ORDER"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_EVIDENCE_ORDER"):
             validate_evidence_order(invalid)
 
     def test_undeclared_evidence(self) -> None:
-        with self.assertRaisesRegex(ValueError, "ITDSL_UNDECLARED_EVIDENCE"):
+        with self.assertRaisesRegex(ValueError, "T-DD-DSL_UNDECLARED_EVIDENCE"):
             validate_evidence_order((Evidence("not.declared", 1),))
 
 
