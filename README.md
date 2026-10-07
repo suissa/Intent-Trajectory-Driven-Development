@@ -4,9 +4,9 @@
 > Trajectory defines the behavioral evolution.
 > Destination defines the expected terminal state.
 
-Intent Trajectory Driven Development (ITDD) is the development method I use when I start from the intent that must be fulfilled and progressively derive the behavior, evidence, contracts, state transitions, actors, skills and implementation from that intent.
+Trajectory-Driven Development (T-DD) is the development method I use when I start from the intent that must be fulfilled and progressively derive the behavior, evidence, contracts, state transitions, actors, skills and implementation from that intent.
 
-I previously started with API design, schemas, routes, database models or UI. In ITDD I start with the destination of the behavior and progressively increase specificity until the same declaration can become an executable specification.
+I previously started with API design, schemas, routes, database models or UI. In T-DD I start with the destination of the behavior and progressively increase specificity until the same declaration can become an executable specification.
 
 The central principle is:
 
@@ -769,7 +769,7 @@ COMPARE TRAJECTORY
 
 Execution produces a real trajectory. I compare that trajectory with the declared trajectory.
 
-This gives me the fundamental feedback loop of Intent Trajectory Driven Development:
+This gives me the fundamental feedback loop of Trajectory-Driven Development:
 
 ```
 declared intent → expected trajectory → observed trajectory → conformance
