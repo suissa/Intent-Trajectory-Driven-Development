@@ -1,4 +1,4 @@
-# RFC-ITDD-0009 — Trajectory Semantic Model
+# RFC-T-DD-0009 — Trajectory Semantic Model
 
 ## Status
 Normative.
@@ -20,6 +20,6 @@ Conformance requires:
 
 `observed trajectory ⊨ declared trajectory`
 
-The central ITDD loop is:
+The central T-DD loop is:
 
 `declared intent → expected trajectory → observed trajectory → conformance`
