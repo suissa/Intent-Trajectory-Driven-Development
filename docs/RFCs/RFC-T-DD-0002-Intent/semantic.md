@@ -1,10 +1,10 @@
-# RFC-ITDD-0002 — Intent Semantic Model
+# RFC-T-DD-0002 — Intent Semantic Model
 
 ## Status
 Normative.
 
 ## Purpose
-Define the semantic request entering an ITDD system.
+Define the semantic request entering an T-DD system.
 
 An Intent represents what an actor wants to accomplish. It is not execution.
 
