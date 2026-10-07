@@ -1,4 +1,4 @@
-# RFC-ITDD-0005 — Contract Semantic Model
+# RFC-T-DD-0005 — Contract Semantic Model
 
 ## Status
 Normative.
