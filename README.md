@@ -1,4 +1,8 @@
-# Intent Trajectory Driven Development
+# Trajectory-Driven Development (T-DD)
+
+> Intent defines the starting semantic.
+> Trajectory defines the behavioral evolution.
+> Destination defines the expected terminal state.
 
 Intent Trajectory Driven Development (ITDD) is the development method I use when I start from the intent that must be fulfilled and progressively derive the behavior, evidence, contracts, state transitions, actors, skills and implementation from that intent.
 
