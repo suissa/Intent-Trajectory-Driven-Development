@@ -1,4 +1,4 @@
-# RFC-ITDD-0006 — State Semantic Model
+# RFC-T-DD-0006 — State Semantic Model
 
 ## Status
 Normative.
