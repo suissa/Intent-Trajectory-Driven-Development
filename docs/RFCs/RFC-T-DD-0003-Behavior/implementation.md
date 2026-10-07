@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0003
+# Implementation — RFC-T-DD-0003
 
 The DSL uses `B:` for Behavior.
 
