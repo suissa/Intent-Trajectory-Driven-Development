@@ -70,13 +70,15 @@ Você deve criar um script para simular a primeira etapa desse fluxo, que será 
 7. (sistema) enviar cobrança para o (cliente) 
 8. (cliente) pagar
 9. (sistema) reconhece e valida pagamento
-10. (sistema) envia os dados para motoboy escolhido junto do comprovante do pagamento avisando que ele precisa pedir o código de entrega para o cliente e enviar nesse WhatsApp para poder receber seu pagamento. Como também precisa da sua geolocalização em tempo real para o seu rastreamento em tempo real. 
-11. ( motoboy envia sua Geo localização em tempo real 
+10. (sistema) envia os dados para motoboy escolhido junto do comprovante do pagamento avisando que ele precisa pedir o código de entrega para o cliente e enviar nesse WhatsApp para poder receber seu pagamento. Como também precisa da sua geolocalização em tempo real para o seu rastreamento em tempo real e sua chave pix. 
+11. (motoboy) envia sua Geo localização em tempo real 
 12. Sistema recebe a localização do motoboy e encaminha para o cliente 
-13. ( motoboy chega com entrega do cliente e pergunta o código da entrega 
-14. Cliente entregar 
+13. (motoboy) chega com entrega do cliente e pergunta o código da entrega 
+14. (cliente) fala seu código de entrega 
+15. (motoboy) envia o código da entrega para o nosso WhatsApp 
+16. (sistema) valida o código e faz a finalização da entrega repassando o pix para a chave do motoboy 
 
 
-
+---
 
 E quando a ação chegar no modulo, você vai fazer uma simulação de enviar cinco mensagens, como se tivesse cinco motoboys livres, só que as cinco mensagens devem ter o mesmo número que o meu, então para eu verificar, validar. Depois eu tenho que responder o endereço, como que vai ser. Então você tem que implementar toda a parte comunicacional, conversacional do agente para ele entender a entrega, o delivery e o que vai fazer. Depois que fechar essa conversa com o cliente, então aí você manda as mensagens pro meu WhatsApp, passando qual é o endereço para buscar a entrega e aonde tem que levar, correto? E já falando que o preço é tal, já que já recebeu o dinheiro e a pessoa que pegar pode ir entregando, já enviando o código pra gente, ou o Pix já vai ser feito. Beleza? Aí você vai fazer o seguinte: eu vou responder como um motoboy, falando: Beleza, eu tô livre. Aí você vai fazer o seguinte: você vai ter que mandar um link mágico para o usuário ser autenticado, a gente já temos ali essa funcionalidade toda, porém o que nós temos hoje é o usuário colocando o seu WhatsApp para depois receber o link mágico. A gente só vai pular uma etapa, correto? E aí o que vai acontecer? Depois que ela entrar no link mágico, ela vai colocar sua passkey e então vai abrir o aplicativo web que irá mostrar então a posição em tempo real do motoboy. A posição que você vai usar será a minha e a posição de destino eu vou enviar corretamente. E aí você vai ter que simular, por exemplo, a saída daqui do meu endereço até o endereço de destino, para que você peça o código de validação quando chegar lá. Aí eu repasso, você valida e aí essa primeira etapa finaliza. Vamos lá.
