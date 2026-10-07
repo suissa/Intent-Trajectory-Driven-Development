@@ -1,10 +1,10 @@
-# RFC-ITDD-0001 — Destiny Semantic Model
+# RFC-T-DD-0001 — Destiny Semantic Model
 
 ## Status
 Normative.
 
 ## Purpose
-Define the business destination that an ITDD specification must achieve.
+Define the business destination that an T-DD specification must achieve.
 
 ## Semantics
 
