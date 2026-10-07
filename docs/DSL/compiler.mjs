@@ -96,8 +96,8 @@ function generateTS(a){
   s+="export interface Evidence { readonly type: EvidenceType; readonly at: number; }\n";
   s+="export interface DeliveryRequest { readonly pickup: string; readonly dropoff: string; }\n";
   s+="export const destiny = "+q(a.destiny)+" as const;\nexport const required = "+q(a.required)+" as const;\nexport const behavior = "+q(a.behavior)+" as const;\n";
-  s+="export const transitions: Readonly<Record<DeliveryState, readonly DeliveryState[]>> = "+q(tr)+";\n";
-  s+="export const authorization: Readonly<Record<Actor, readonly Capability[]>> = "+q(a.actors)+";\n";
+  s+="export const transitions: Readonly<Record<DeliveryState, readonly DeliveryState[]>> = "+q(tr)+" as const;\n";
+  s+="export const authorization: Readonly<Record<Actor, readonly Capability[]>> = "+q(a.actors)+" as const;\n";
   s+='export function allowed(actor: Actor, capability: Capability): boolean { return authorization[actor].includes(capability); }\n';
   s+='export function transition(from: DeliveryState, to: DeliveryState): DeliveryState { if (!transitions[from].includes(to)) throw new Error("ITDSL_ILLEGAL_TRANSITION"); return to; }\n';
   s+='export function validateRequest(request: DeliveryRequest): void { if (!request.pickup || !request.dropoff) throw new Error("ITDSL_REQUIRED_INPUT"); if (request.pickup === request.dropoff) throw new Error("ITDSL_PICKUP_EQUALS_DROPOFF"); }\n';
