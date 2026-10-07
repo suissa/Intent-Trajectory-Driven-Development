@@ -254,3 +254,9 @@ Validation diagnostics use stable `ITDSL_*` identities. Examples include:
 - `ITDSL_TARGET`: unsupported projection target.
 
 CI must test both failure and success paths, regenerate the projection from source, execute it, and regenerate again to prove deterministic output.
+
+## 12. Semantic constraint compilation
+
+The reference compiler now treats X as a semantic language rather than an opaque string. Constraints are parsed into a normalized Boolean AST, checked for proven contradictions, and preserved in the generated semantic IR. This establishes a boundary between syntax validity, static semantic invalidity, and runtime conformance.
+
+The current static checker is deliberately conservative: it rejects contradictions it can prove locally and rejects malformed expressions, while leaving general theorem proving and arbitrary satisfiability to a future formal backend.
