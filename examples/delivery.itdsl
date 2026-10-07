@@ -1,0 +1,50 @@
+@delivery
+
+D: delivery → requested paid assigned tracked delivered settled
+I: customer → deliver
+R: pickup + dropoff
+
+B: request
+→ collect
+→ discover(courier*)
+→ select(min distance)
+→ charge
+→ confirm
+→ release
+→ track*
+→ validate(code)
+→ settle
+
+S: requested
+→ collecting
+→ searching
+→ assigned
+→ awaiting_payment
+→ paid
+→ active
+→ arriving
+→ delivered
+→ settled
+
+A:
+  customer { request address pay code }
+  system { classify collect discover select charge validate route settle }
+  courier { accept locate deliver }
+  payment { confirm reject }
+
+E: request.received
+→ intent.recognized
+→ addresses.collected
+→ courier.selected
+→ payment.confirmed
+→ delivery.released
+→ location.received*
+→ location.forwarded*
+→ code.validated
+→ settlement.completed
+
+X:
+  ¬ release(payment ≠ confirmed)
+  ¬ settle(code ≠ valid)
+  ¬ settle(location ≠ dropoff)
+  ¬ select(courier ∉ available)
