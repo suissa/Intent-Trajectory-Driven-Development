@@ -19,4 +19,4 @@ Actor/capability map.
 Technical possibility MUST NOT imply semantic authorization.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
