@@ -1,9 +1,9 @@
-# RFC-ITDD-0010 — Intent Trajectory DSL Semantic Model
+# RFC-T-DD-0010 — Trajectory-Driven DSL Semantic Model
 
 ## Status
 Normative.
 
-ITDSL is the declarative notation for the ITDD semantic model.
+T-DD-DSL is the declarative notation for the T-DD semantic model.
 
 The DSL MUST represent, directly or through defined projection, Destiny, Intent, Required information, Behavior, State, Actor, Skill, Evidence, Constraint and Trajectory semantics.
 
