@@ -23,6 +23,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate compiler
+        run: node docs/DSL/compiler.test.mjs
       - name: Generate TypeScript from DSL
         run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/2typescript/generated typescript
       - name: Classify generated language
