@@ -292,3 +292,61 @@ The resulting judgment is:
 This is stronger than validating isolated events. The proof carries facts forward between Skills, so an evidence item established by one Skill can satisfy the precondition of the next Skill.
 
 The delivery example now declares a complete Skill chain from `requested` to `settled`, making the end-to-end proof executable in both TypeScript and Python.
+
+
+## 15. Formal Trajectory Proof Artifact
+
+A successful or failed trajectory proof can be materialized as a persistible, language-neutral artifact through `createTrajectoryProof` / `create_trajectory_proof`.
+
+The artifact identifies the semantic declaration independently of a runtime process:
+
+```text
+TrajectoryID = identity of the declared trajectory
+BehaviorID   = identity of the declared behavior
+```
+
+The reference compiler derives deterministic identifiers from the normalized semantic declarations. They are stable for the same declaration and change when the declaration changes.
+
+The artifact records:
+
+- `version`;
+- `conformant`;
+- `trajectoryId` / `trajectory_id`;
+- `behaviorId` / `behavior_id`;
+- intent;
+- start and end timestamps when runtime provenance supplies them;
+- per-step provenance (`timestamp`, `source`, `sequence`);
+- observed states;
+- executed Skills;
+- observed evidence;
+- the first divergence, when conformance fails.
+
+The first divergence is authoritative. It contains a stable diagnostic code, execution step, optional Skill, expected value, observed value, and diagnostic message. Later failures are not allowed to replace the first semantic divergence.
+
+The artifact therefore changes the proof model from:
+
+```text
+execution → boolean conformance
+```
+
+to:
+
+```text
+execution
+→ proof
+→ identity
+→ temporal provenance
+→ first divergence
+→ persistible evidence
+```
+
+The resulting relation is:
+
+```text
+ProofArtifact
+  ⊨ TrajectoryID
+  ⊨ BehaviorID
+  ⊨ Intent
+```
+
+This is the foundation for later integration with trajectory history, BehaviorID/TrajectoryID indexing, causal analysis, and replay without coupling the DSL compiler to a particular observability backend.
