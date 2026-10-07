@@ -350,3 +350,49 @@ ProofArtifact
 ```
 
 This is the foundation for later integration with trajectory history, BehaviorID/TrajectoryID indexing, causal analysis, and replay without coupling the DSL compiler to a particular observability backend.
+
+
+## 16. Proof artifact persistence and replay
+
+The formal trajectory proof artifact is now a portable persistence boundary.
+
+The reference projections expose:
+
+- `serializeTrajectoryProof` / `serialize_trajectory_proof`;
+- `deserializeTrajectoryProof` / `deserialize_trajectory_proof`;
+- `replayTrajectoryProof` / `replay_trajectory_proof`.
+
+Serialization preserves the proof artifact as a language-neutral JSON representation. Deserialization is fail-closed: the artifact version and its `TrajectoryID` and `BehaviorID` must match the current semantic declaration.
+
+Replay executes the same conformance proof against a new observation sequence and verifies that the resulting semantic identity and observed Skill/evidence sequence remain compatible with the persisted artifact.
+
+The persistence model is therefore:
+
+```text
+execution
+  ↓
+proof artifact
+  ↓
+serialize
+  ↓
+persist
+  ↓
+deserialize
+  ↓
+replay
+  ↓
+semantic comparison
+```
+
+This deliberately keeps persistence independent from a database, event store, telemetry vendor, or observability backend.
+
+The important invariant is:
+
+```text
+persisted ProofArtifact
+  ⊨ current TrajectoryID
+  ⊨ current BehaviorID
+  ⊨ replayed trajectory
+```
+
+An artifact from a different semantic declaration must not silently replay against the current declaration. This establishes the integrity boundary required before introducing trajectory history and cross-execution causal analysis.
