@@ -28,7 +28,7 @@ function parse(src){
    else if(section==="X"&&body)a.constraints.push(canon(body)); continue;}
   if(["B","S","E","T"].includes(section)){var vals=arrows(line);a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]]=a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]].concat(section==="E"?vals.map(cardinality):vals);continue;}
   if(section==="A"){var am=line.match(/^([a-z][a-z0-9_]*)\s*\{([^}]*)\}$/);if(!am)fail("ITDSL_SYNTAX_ACTOR","expected actor { capabilities }",n);a.actors[am[1]]=am[2].trim().split(/\s+/).filter(Boolean);continue;}
-  if(section==="K"){var sm=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(sm){skill=sm[1];a.skills[skill]={name:skill,fields:{},line:n};continue;}if(line=== "}"){skill=null;continue;}if(!skill)fail("ITDSL_SYNTAX_SKILL","field outside skill",n);var fm=line.match(/^(in|out|rule|emit|pre|post|when|from|to|requires|ensures|allows|forbids):\s*(.*)$/);if(!fm)fail("ITDSL_SYNTAX_SKILL","expected skill field",n);a.skills[skill].fields[fm[1]]=canon(fm[2]);continue;}
+  if(section==="K"){var inline=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(inline){skill=inline[1];a.skills[skill]={name:skill,fields:{},line:n};continue;}var sm=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(sm){skill=sm[1];a.skills[skill]={name:skill,fields:{},line:n};continue;}if(line=== "}"){skill=null;continue;}if(!skill)fail("ITDSL_SYNTAX_SKILL","field outside skill",n);var fm=line.match(/^(in|out|rule|emit|pre|post|when|from|to|requires|ensures|allows|forbids):\s*(.*)$/);if(!fm)fail("ITDSL_SYNTAX_SKILL","expected skill field",n);a.skills[skill].fields[fm[1]]=canon(fm[2]);continue;}
   if(section==="X"){a.constraints.push(canon(line));continue;} fail("ITDSL_SYNTAX","unrecognized declaration",n);
  } return a;
 }
