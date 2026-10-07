@@ -40,3 +40,5 @@ jobs:
           node docs/DSL/compiler.mjs examples/delivery.itdsl "$tmp" typescript >/dev/null
           cmp docs/DSL/2typescript/generated/generated.ts "$tmp/generated.ts"
           cmp docs/DSL/2typescript/generated/generated.test.ts "$tmp/generated.test.ts"
+
+# Generic compiler validation is source-driven.
