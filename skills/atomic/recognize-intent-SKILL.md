@@ -23,4 +23,4 @@ A semantic Intent.
 Intent recognition MUST NOT be replaced by an implementation route or database operation.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
