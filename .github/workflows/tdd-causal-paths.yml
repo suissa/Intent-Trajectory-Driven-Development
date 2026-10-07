@@ -1,0 +1,25 @@
+name: T-DD Multi-Hop Causal Paths
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/DSL/trajectory-causal-paths.*'
+      - 'docs/DSL/trajectory_causal_paths.py'
+      - 'docs/DSL/test_trajectory_causal_paths.py'
+  pull_request:
+    paths:
+      - 'docs/DSL/trajectory-causal-paths.*'
+      - 'docs/DSL/trajectory_causal_paths.py'
+      - 'docs/DSL/test_trajectory_causal_paths.py'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node --test docs/DSL/trajectory-causal-paths.test.mjs
+      - run: python -m unittest docs/DSL/test_trajectory_causal_paths.py
