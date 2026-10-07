@@ -18,6 +18,7 @@ B: request
 S: requested
 → collecting
 → recognizing
+→ addressing
 → searching
 → assigned
 → awaiting_payment
@@ -52,23 +53,23 @@ K request_delivery {
   to: collecting
   emit: request.received
 }
-K collect_addresses {
-  in: pickup + dropoff
-  rule: collect addresses
-  out: addresses
-  from: collecting
-  to: recognizing
-  pre: request.received
-  emit: addresses.collected
-}
 K recognize_intent {
   in: request
   rule: classify intent
   out: intent
   from: recognizing
-  to: searching
-  pre: addresses.collected
+  to: addressing
+  pre: request.received
   emit: intent.recognized
+}
+K collect_addresses {
+  in: pickup + dropoff
+  rule: collect addresses
+  out: addresses
+  from: addressing
+  to: searching
+  pre: intent.recognized
+  emit: addresses.collected
 }
 K select_courier {
   in: couriers + origin
