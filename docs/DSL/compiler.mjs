@@ -144,7 +144,29 @@ assert.throws(()=>conformSkillExecution({...execution,capability:'pay'}),/ITDSL_
 assert.throws(()=>conformSkillExecution({...execution,evidence:valid.filter(x=>x.type!=='courier.selected')}),/ITDSL_CONFORMANCE_EVIDENCE/);
 console.log('Generic ITDSL TypeScript conformance: PASS');
 `;}
-function testPy(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],st=a.states,ev=a.evidence.map(function(x){return x.value});return "import unittest\nfrom generated import Actor,State,Evidence,SkillExecution,allowed,assert_constraint,conform_skill_execution,conforms,transition,validate_evidence_order\nclass GenericITDSLTests(unittest.TestCase):\n def test_auth(self): self.assertTrue(allowed(Actor."+actor.toUpperCase()+", "+q(cap)+"))\n def test_state(self):\n  self.assertEqual(transition(State."+st[0].toUpperCase()+",State."+st[1].toUpperCase()+"),State."+st[1].toUpperCase()+")\n  with self.assertRaisesRegex(ValueError,'ITDSL_ILLEGAL_TRANSITION'): transition(State."+st[0].toUpperCase()+",State."+st[st.length-1].toUpperCase()+")\n def test_evidence(self):\n  e=tuple(Evidence(x,i+1) for i,x in enumerate("+q(ev)+"));validate_evidence_order(e);self.assertTrue(conforms(e))\n  with self.assertRaisesRegex(ValueError,'ITDSL_EVIDENCE_ORDER'): validate_evidence_order(tuple(reversed(e)))\n def test_constraint(self):\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONSTRAINT:forbidden'): assert_constraint(False,'forbidden')\n def test_skill_conformance(self):\n  e=tuple(Evidence(x,i+1) for i,x in enumerate("+q(ev)+"))\n  execution=SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e)\n  self.assertTrue(conform_skill_execution(execution))\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_STATE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.PAID,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e))\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_INPUT'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers',),actor=Actor.SYSTEM,capability='select',evidence=e))\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_AUTHORIZATION'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='pay',evidence=e))\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_EVIDENCE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=tuple(x for x in e if x.kind!='courier.selected'))))\nif __name__=='__main__': unittest.main(verbosity=2)\n";}\nconst parsed=parse(input);validate(parsed);parsed.skillSemantics=skillSemantics(parsed);const ast=normalize(parsed);mkdirSync(out,{recursive:true});
+function testPy(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],st=a.states,ev=a.evidence.map(function(x){return x.value});return `import unittest
+from generated import Actor,State,Evidence,SkillExecution,allowed,assert_constraint,conform_skill_execution,conforms,transition,validate_evidence_order
+class GenericITDSLTests(unittest.TestCase):
+ def test_auth(self): self.assertTrue(allowed(Actor.${actor.toUpperCase()}, ${q(cap)}))
+ def test_state(self):
+  self.assertEqual(transition(State.${st[0].toUpperCase()},State.${st[1].toUpperCase()}),State.${st[1].toUpperCase()})
+  with self.assertRaisesRegex(ValueError,'ITDSL_ILLEGAL_TRANSITION'): transition(State.${st[0].toUpperCase()},State.${st[st.length-1].toUpperCase()})
+ def test_evidence(self):
+  e=tuple(Evidence(x,i+1) for i,x in enumerate(${q(ev)}));validate_evidence_order(e);self.assertTrue(conforms(e))
+  with self.assertRaisesRegex(ValueError,'ITDSL_EVIDENCE_ORDER'): validate_evidence_order(tuple(reversed(e)))
+ def test_constraint(self):
+  with self.assertRaisesRegex(ValueError,'ITDSL_CONSTRAINT:forbidden'): assert_constraint(False,'forbidden')
+ def test_skill_conformance(self):
+  e=tuple(Evidence(x,i+1) for i,x in enumerate(${q(ev)}))
+  execution=SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e)
+  self.assertTrue(conform_skill_execution(execution))
+  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_STATE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.PAID,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=e))
+  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_INPUT'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers',),actor=Actor.SYSTEM,capability='select',evidence=e))
+  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_AUTHORIZATION'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='pay',evidence=e))
+  with self.assertRaisesRegex(ValueError,'ITDSL_CONFORMANCE_EVIDENCE'): conform_skill_execution(SkillExecution('select_courier',State.SEARCHING,State.ASSIGNED,('couriers','origin'),actor=Actor.SYSTEM,capability='select',evidence=tuple(x for x in e if x.kind!='courier.selected')))
+if __name__=='__main__': unittest.main(verbosity=2)
+`;}
+const parsed=parse(input);validate(parsed);parsed.skillSemantics=skillSemantics(parsed);const ast=normalize(parsed);mkdirSync(out,{recursive:true});
 if(target==="typescript"){writeFileSync(resolve(out,"generated.ts"),generateTS(ast));writeFileSync(resolve(out,"generated.test.ts"),testTS(ast));}
 else if(target==="python"){writeFileSync(resolve(out,"generated.py"),generatePy(ast));writeFileSync(resolve(out,"test_generated.py"),testPy(ast));}else fail("ITDSL_TARGET","target must be typescript or python");
 writeFileSync(resolve(out,".itdsl-ir.json"),JSON.stringify(ast,null,2)+"\n");console.log(JSON.stringify({ok:true,target,source,output:out}));
