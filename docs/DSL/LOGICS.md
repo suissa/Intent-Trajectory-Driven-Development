@@ -1,8 +1,8 @@
-# Intent Trajectory DSL — Logics
+# Trajectory-Driven DSL — Logics
 
 ## 1. Logical layers
 
-ITDSL separates structural validity, propositional constraints, temporal succession, authorization, and conformance.
+T-DD-DSL separates structural validity, propositional constraints, temporal succession, authorization, and conformance.
 
 They are different judgments and must not be conflated.
 
