@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0002
+# Implementation — RFC-T-DD-0002
 
 The DSL uses `I:` for Intent and `R:` for required semantic information.
 
