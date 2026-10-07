@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate compiler
+        run: node docs/DSL/compiler.test.mjs
       - name: Generate Python from DSL
         run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/python/generated python
       - name: Classify generated language
