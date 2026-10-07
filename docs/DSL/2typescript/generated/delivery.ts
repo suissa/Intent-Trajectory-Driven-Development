@@ -78,32 +78,32 @@ export function allowed(actor: Actor, capability: Capability): boolean {
 
 export function transition(from: DeliveryState, to: DeliveryState): DeliveryState {
   if (!transitions[from].includes(to)) {
-    throw new Error("ITDSL_ILLEGAL_TRANSITION");
+    throw new Error("T-DD-DSL_ILLEGAL_TRANSITION");
   }
   return to;
 }
 
 export function validateRequest(request: DeliveryRequest): void {
   if (!request.pickup || !request.dropoff) {
-    throw new Error("ITDSL_REQUIRED_INPUT");
+    throw new Error("T-DD-DSL_REQUIRED_INPUT");
   }
   if (request.pickup === request.dropoff) {
-    throw new Error("ITDSL_PICKUP_EQUALS_DROPOFF");
+    throw new Error("T-DD-DSL_PICKUP_EQUALS_DROPOFF");
   }
 }
 
 export function assertCanRelease(paymentConfirmed: boolean): void {
   if (!paymentConfirmed) {
-    throw new Error("ITDSL_RELEASE_BEFORE_PAYMENT");
+    throw new Error("T-DD-DSL_RELEASE_BEFORE_PAYMENT");
   }
 }
 
 export function assertCanSettle(codeValid: boolean, atDropoff: boolean): void {
   if (!codeValid) {
-    throw new Error("ITDSL_INVALID_CODE");
+    throw new Error("T-DD-DSL_INVALID_CODE");
   }
   if (!atDropoff) {
-    throw new Error("ITDSL_NOT_AT_DROPOFF");
+    throw new Error("T-DD-DSL_NOT_AT_DROPOFF");
   }
 }
 
@@ -112,7 +112,7 @@ export function selectNearest<T extends { readonly available: boolean; readonly 
 ): T {
   const available = couriers.filter((courier) => courier.available);
   if (available.length === 0) {
-    throw new Error("ITDSL_NO_AVAILABLE_COURIER");
+    throw new Error("T-DD-DSL_NO_AVAILABLE_COURIER");
   }
   return available.reduce((nearest, courier) =>
     courier.distance < nearest.distance ? courier : nearest,
@@ -137,10 +137,10 @@ export function validateEvidenceOrder(evidence: readonly Evidence[]): void {
   for (const item of evidence) {
     const current = order.indexOf(item.type);
     if (current < 0) {
-      throw new Error("ITDSL_UNDECLARED_EVIDENCE");
+      throw new Error("T-DD-DSL_UNDECLARED_EVIDENCE");
     }
     if (current < previous) {
-      throw new Error("ITDSL_EVIDENCE_ORDER");
+      throw new Error("T-DD-DSL_EVIDENCE_ORDER");
     }
     previous = current;
   }
