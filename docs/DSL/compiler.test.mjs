@@ -26,7 +26,7 @@ const invalid = join(root, "invalid.itdsl");
 writeFileSync(invalid, ["@delivery","D: delivery → requested","I: ghost → deliver","R: pickup + dropoff","B: request","S: requested → settled","A: customer { request }","E: request.received","T: request.received → done"].join("\n"));
 const failure = run(invalid, join(root, "invalid"));
 assert.notEqual(failure.status, 0);
-assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);
+assert.match(failure.stderr, /T-DD-DSL_ACTOR_RESOLUTION/);
 
 const contradictory = join(root, "contradictory.itdsl");
 writeFileSync(contradictory, [
@@ -44,7 +44,7 @@ writeFileSync(contradictory, [
 ].join("\n"));
 const contradiction = run(contradictory, join(root, "contradictory"));
 assert.notEqual(contradiction.status, 0);
-assert.match(contradiction.stderr, /ITDSL_CONSTRAINT_CONTRADICTION/);
+assert.match(contradiction.stderr, /T-DD-DSL_CONSTRAINT_CONTRADICTION/);
 
 const malformedConstraint = join(root, "malformed-constraint.itdsl");
 writeFileSync(malformedConstraint, [
@@ -61,9 +61,9 @@ writeFileSync(malformedConstraint, [
 ].join("\n"));
 const malformed = run(malformedConstraint, join(root, "malformed"));
 assert.notEqual(malformed.status, 0);
-assert.match(malformed.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
+assert.match(malformed.stderr, /T-DD-DSL_CONSTRAINT_SYNTAX/);
 
-console.log("ITDSL compiler tests: PASS");
+console.log("T-DD-DSL compiler tests: PASS");
 
 const semanticSkill = run(resolve(process.cwd(), "examples/delivery.itdsl"), join(root, "skill-semantic"));
 assert.equal(semanticSkill.status, 0, semanticSkill.stderr);
@@ -74,5 +74,5 @@ const invalidSkill = join(root, "invalid-skill.itdsl");
 writeFileSync(invalidSkill, ["@logic","D: process → ready","I: actor → run","R: input","B: run","S: ready → done","A: actor { run }","K run {","  in: input","  out: result","  rule: execute","  emit: process.done","  pre: ready ∧","}","E: process.done","T: process.done"].join("\n"));
 const badSkill = run(invalidSkill, join(root, "invalid-skill"));
 assert.notEqual(badSkill.status, 0);
-assert.match(badSkill.stderr, /ITDSL_CONSTRAINT_SYNTAX/);
+assert.match(badSkill.stderr, /T-DD-DSL_CONSTRAINT_SYNTAX/);
 rmSync(root, { recursive: true, force: true });
