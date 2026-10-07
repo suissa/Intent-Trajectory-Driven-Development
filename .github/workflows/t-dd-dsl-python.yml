@@ -5,12 +5,12 @@ on:
     paths:
       - "docs/DSL/**"
       - "examples/**"
-      - ".github/workflows/itdsl-python.yml"
+      - ".github/workflows/t-dd-dsl-python.yml"
   pull_request:
     paths:
       - "docs/DSL/**"
       - "examples/**"
-      - ".github/workflows/itdsl-python.yml"
+      - ".github/workflows/t-dd-dsl-python.yml"
 
 permissions:
   contents: read
@@ -29,7 +29,7 @@ jobs:
       - name: Validate compiler
         run: node docs/DSL/compiler.test.mjs python
       - name: Generate Python from DSL
-        run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/python/generated python
+        run: node docs/DSL/compiler.mjs examples/delivery.tddl docs/DSL/python/generated python
       - name: Classify generated language
         run: |
           language="$(node docs/DSL/classify-generated.mjs docs/DSL/python/generated | python -c 'import json,sys; print(json.load(sys.stdin)["language"])')"
@@ -40,6 +40,6 @@ jobs:
       - name: Re-generate and compare
         run: |
           tmp="$(mktemp -d)"
-          node docs/DSL/compiler.mjs examples/delivery.itdsl "$tmp" python >/dev/null
+          node docs/DSL/compiler.mjs examples/delivery.tddl "$tmp" python >/dev/null
           cmp docs/DSL/python/generated/generated.py "$tmp/generated.py"
           cmp docs/DSL/python/generated/test_generated.py "$tmp/test_generated.py"
