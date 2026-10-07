@@ -1,7 +1,7 @@
 # Atomic Skill — Compile DSL
 
 ## Purpose
-Compress established semantics into the ITDD DSL.
+Compress established semantics into the T-DD DSL.
 
 ## When
 Use only after the semantic stages are defined.
@@ -16,4 +16,4 @@ A declarative semantic source such as `.itdsl`.
 The DSL MUST NOT introduce meaning that does not exist in the semantic model.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
