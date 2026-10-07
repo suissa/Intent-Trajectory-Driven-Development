@@ -1,0 +1,37 @@
+name: T-DD Causal Trajectory Graph
+
+on:
+  push:
+    paths:
+      - "docs/DSL/trajectory-causal-graph.mjs"
+      - "docs/DSL/trajectory-causal-graph.test.mjs"
+      - "docs/DSL/trajectory_causal_graph.py"
+      - "docs/DSL/test_trajectory_causal_graph.py"
+      - "docs/DSL/trajectory-causality.mjs"
+      - "docs/DSL/trajectory_causality.py"
+      - ".github/workflows/tdd-causal-graph.yml"
+  pull_request:
+    paths:
+      - "docs/DSL/trajectory-causal-graph.mjs"
+      - "docs/DSL/trajectory-causal-graph.test.mjs"
+      - "docs/DSL/trajectory_causal_graph.py"
+      - "docs/DSL/test_trajectory_causal_graph.py"
+      - "docs/DSL/trajectory-causality.mjs"
+      - "docs/DSL/trajectory_causality.py"
+      - ".github/workflows/tdd-causal-graph.yml"
+
+jobs:
+  causal-graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Test JavaScript
+        run: node --test docs/DSL/trajectory-causality.test.mjs docs/DSL/trajectory-causal-graph.test.mjs
+      - name: Test Python
+        run: PYTHONPATH=docs/DSL python -m unittest docs/DSL/test_trajectory_causality.py docs/DSL/test_trajectory_causal_graph.py -v
