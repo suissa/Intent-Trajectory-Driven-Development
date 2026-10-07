@@ -1,4 +1,4 @@
-# RFC-ITDD-0007 — Actor Semantic Model
+# RFC-T-DD-0007 — Actor Semantic Model
 
 ## Status
 Normative.
