@@ -32,6 +32,17 @@ A:
   courier { accept locate deliver }
   payment { confirm reject }
 
+K select_courier {
+  in: couriers + origin
+  rule: min distance
+  out: courier
+  pre: addresses.collected
+  post: courier.selected
+  from: searching
+  to: assigned
+  emit: courier.selected
+}
+
 E: request.received
 → intent.recognized
 → addresses.collected
