@@ -13,13 +13,13 @@ import {
 assert.doesNotThrow(() => validateRequest({ pickup: "A", dropoff: "B" }));
 assert.throws(
   () => validateRequest({ pickup: "A", dropoff: "A" }),
-  /ITDSL_PICKUP_EQUALS_DROPOFF/,
+  /T-DD-DSL_PICKUP_EQUALS_DROPOFF/,
 );
 
 assert.equal(transition("requested", "collecting"), "collecting");
 assert.throws(
   () => transition("requested", "settled"),
-  /ITDSL_ILLEGAL_TRANSITION/,
+  /T-DD-DSL_ILLEGAL_TRANSITION/,
 );
 
 assert.equal(allowed("customer", "pay"), true);
@@ -27,17 +27,17 @@ assert.equal(allowed("customer", "settle"), false);
 
 assert.throws(
   () => assertCanRelease(false),
-  /ITDSL_RELEASE_BEFORE_PAYMENT/,
+  /T-DD-DSL_RELEASE_BEFORE_PAYMENT/,
 );
 assert.doesNotThrow(() => assertCanRelease(true));
 
 assert.throws(
   () => assertCanSettle(false, true),
-  /ITDSL_INVALID_CODE/,
+  /T-DD-DSL_INVALID_CODE/,
 );
 assert.throws(
   () => assertCanSettle(true, false),
-  /ITDSL_NOT_AT_DROPOFF/,
+  /T-DD-DSL_NOT_AT_DROPOFF/,
 );
 assert.doesNotThrow(() => assertCanSettle(true, true));
 
@@ -69,7 +69,7 @@ assert.throws(
     { type: "payment.confirmed", at: 1 },
     { type: "request.received", at: 2 },
   ]),
-  /ITDSL_EVIDENCE_ORDER/,
+  /T-DD-DSL_EVIDENCE_ORDER/,
 );
 
-console.log("TS generated ITDSL conformance: PASS");
+console.log("TS generated T-DD-DSL conformance: PASS");
