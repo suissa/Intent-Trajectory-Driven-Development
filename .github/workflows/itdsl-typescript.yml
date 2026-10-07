@@ -1,4 +1,4 @@
-name: ITDSL TypeScript
+name: T-DD-DSL TypeScript
 
 on:
   push:
