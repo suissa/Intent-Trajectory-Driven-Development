@@ -1,0 +1,29 @@
+name: ITDSL TypeScript
+
+on:
+  push:
+    paths:
+      - "docs/DSL/**"
+      - ".github/workflows/itdsl-typescript.yml"
+  pull_request:
+    paths:
+      - "docs/DSL/**"
+      - ".github/workflows/itdsl-typescript.yml"
+
+jobs:
+  generated-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Classify generated language
+        id: classify
+        run: |
+          language="$(node docs/DSL/classify-generated.mjs docs/DSL/2typescript/generated | node -e 'let s=""; process.stdin.on("data",d=>s+=d); process.stdin.on("end",()=>process.stdout.write(JSON.parse(s).language))')"
+          test "$language" = "typescript"
+      - name: Execute generated TypeScript
+        working-directory: docs/DSL/2typescript/generated
+        run: |
+          npx --yes tsx delivery.test.ts
