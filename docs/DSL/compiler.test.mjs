@@ -16,7 +16,7 @@ const first = join(root, "first");
 const second = join(root, "second");
 assert.equal(run(source, first).status, 0);
 assert.equal(run(source, second).status, 0);
-assert.equal(readFileSync(join(first, "delivery.ts"), "utf8"), readFileSync(join(second, "delivery.ts"), "utf8"));
+assert.equal(readFileSync(join(first, "generated.ts"), "utf8"), readFileSync(join(second, "generated.ts"), "utf8"));
 assert.equal(readFileSync(join(first, ".itdsl-normalized.json"), "utf8"), readFileSync(join(second, ".itdsl-normalized.json"), "utf8"));
 
 const invalid = join(root, "invalid.itdsl");
