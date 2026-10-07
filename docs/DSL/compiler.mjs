@@ -25,6 +25,7 @@ function parse(src){
    else if(section==="S")a.states=a.states.concat(arrows(body));
    else if(section==="E")a.evidence=a.evidence.concat(arrows(body).map(cardinality));
    else if(section==="T")a.trajectory=a.trajectory.concat(arrows(body));
+   else if(section==="A"&&body){var amInline=body.match(/^([a-z][a-z0-9_]*)\\s*\\{([^}]*)\\}$/);if(!amInline)fail("ITDSL_SYNTAX_ACTOR","expected actor { capabilities }",n);a.actors[amInline[1]]=amInline[2].trim().split(/\\s+/).filter(Boolean);}
    else if(section==="X"&&body)a.constraints.push(canon(body)); continue;}
   if(["B","S","E","T"].includes(section)){var vals=arrows(line);a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]]=a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]].concat(section==="E"?vals.map(cardinality):vals);continue;}
   if(section==="A"){var am=line.match(/^([a-z][a-z0-9_]*)\s*\{([^}]*)\}$/);if(!am)fail("ITDSL_SYNTAX_ACTOR","expected actor { capabilities }",n);a.actors[am[1]]=am[2].trim().split(/\s+/).filter(Boolean);continue;}
