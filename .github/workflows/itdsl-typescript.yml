@@ -10,6 +10,9 @@ on:
       - "docs/DSL/**"
       - ".github/workflows/itdsl-typescript.yml"
 
+permissions:
+  contents: read
+
 jobs:
   generated-typescript:
     runs-on: ubuntu-latest
