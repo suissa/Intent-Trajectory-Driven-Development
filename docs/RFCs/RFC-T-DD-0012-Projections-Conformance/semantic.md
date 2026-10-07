@@ -1,9 +1,9 @@
-# RFC-ITDD-0012 — Projections and Conformance
+# RFC-T-DD-0012 — Projections and Conformance
 
 ## Status
 Normative.
 
-A language projection maps normalized ITDSL semantics to an implementation language without changing meaning.
+A language projection maps normalized T-DD-DSL semantics to an implementation language without changing meaning.
 
 For specification P and implementation Y:
 
