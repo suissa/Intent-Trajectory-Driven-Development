@@ -44,6 +44,7 @@ function validate(a){
  for(var ed of edges(a.states))if(!ss.has(ed[0])||!ss.has(ed[1]))fail("ITDSL_STATE_RESOLUTION","unknown state edge");
  for(var term of a.trajectory){var base=term.replace(/\*$/g,"");if(!ID.test(base)&&!QUAL.test(base)&&!base.includes("("))fail("ITDSL_TRAJECTORY_SHAPE","invalid trajectory term "+term);}
  return true;}
+function skillSemantics(a){return Object.values(a.skills).map(function(k){var f=k.fields;return {name:k.name,input:f.in,output:f.out,rule:f.rule,evidence:f.emit,pre:f.pre?parseConstraint(f.pre):null,post:f.post?parseConstraint(f.post):null,when:f.when?parseConstraint(f.when):null,from:f.from||null,to:f.to||null,requires:f.requires?parseConstraint(f.requires):null,ensures:f.ensures?parseConstraint(f.ensures):null,allows:f.allows?arrows(f.allows):[],forbids:f.forbids?arrows(f.forbids):[]};});}
 function q(x){return JSON.stringify(x);}
 function pyq(x){return q(x).replace(/\btrue\b/g,"True").replace(/\bfalse\b/g,"False").replace(/\bnull\b/g,"None");}
 function generateTS(a){
