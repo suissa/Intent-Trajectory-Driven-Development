@@ -1,8 +1,8 @@
-# Intent Trajectory DSL
+# Trajectory-Driven DSL
 
 ## 1. Purpose
 
-The Intent Trajectory DSL (ITDSL) is the declarative notation of Intent Trajectory Driven Development (ITDD).
+The Trajectory-Driven DSL (T-DD-DSL) is the declarative notation of Trajectory-Driven Development (T-DD).
 
 It describes, with progressively precise semantics:
 
@@ -243,15 +243,15 @@ The canonical delivery source is `examples/delivery.itdsl`. The compiler is `doc
 
 The compiler must fail closed. It must never emit a successful projection after a syntax or semantic error.
 
-Validation diagnostics use stable `ITDSL_*` identities. Examples include:
+Validation diagnostics use stable `T-DD-DSL_*` identities. Examples include:
 
-- `ITDSL_SYNTAX_*`: malformed DSL structure;
-- `ITDSL_*_RESOLUTION`: unresolved semantic name;
-- `ITDSL_STATE_*`: invalid state graph;
-- `ITDSL_INVALID_EVIDENCE`: malformed evidence identity;
-- `ITDSL_INVALID_BEHAVIOR`: malformed behavior term;
-- `ITDSL_ACTOR_RESOLUTION`: undeclared intent actor;
-- `ITDSL_TARGET`: unsupported projection target.
+- `T-DD-DSL_SYNTAX_*`: malformed DSL structure;
+- `T-DD-DSL_*_RESOLUTION`: unresolved semantic name;
+- `T-DD-DSL_STATE_*`: invalid state graph;
+- `T-DD-DSL_INVALID_EVIDENCE`: malformed evidence identity;
+- `T-DD-DSL_INVALID_BEHAVIOR`: malformed behavior term;
+- `T-DD-DSL_ACTOR_RESOLUTION`: undeclared intent actor;
+- `T-DD-DSL_TARGET`: unsupported projection target.
 
 CI must test both failure and success paths, regenerate the projection from source, execute it, and regenerate again to prove deterministic output.
 
