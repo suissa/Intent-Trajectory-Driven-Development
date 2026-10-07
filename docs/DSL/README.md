@@ -302,10 +302,10 @@ The artifact identifies the semantic declaration independently of a runtime proc
 
 ```text
 TrajectoryID = identity of the declared trajectory
-Behavior   = identity of the declared behavior
+Behavior   = the semantic behavior being realized
 ```
 
-The reference compiler derives deterministic identifiers from the normalized semantic declarations. They are stable for the same declaration and change when the declaration changes.
+The reference compiler derives a deterministic TrajectoryID from the normalized trajectory declaration. Behavior remains semantic content, not a separate identity in this artifact.
 
 The artifact records:
 
