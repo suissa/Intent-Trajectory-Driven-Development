@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0006
+# Implementation — RFC-T-DD-0006
 
 The DSL uses `S:` for state progression.
 
