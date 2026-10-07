@@ -1,11 +1,11 @@
 # Destination Skill
 
-The Destination Skill is the operational form of the ITDD Destiny stage.
+The Destination Skill is the operational form of the T-DD Destiny stage.
 
 ## Source
 
-- [ITDD README](../README.md)
-- [ITDD semantic SRFC](../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+- [T-DD README](../README.md)
+- [T-DD semantic SRFC](../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
 - [Define Destination Atomic Skill](atomic/define-destination-SKILL.md)
 
 ## When to use
