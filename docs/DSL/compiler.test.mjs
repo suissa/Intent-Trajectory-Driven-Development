@@ -17,8 +17,8 @@ function run(src, target) {
 { const result=run(support, join(root, "support")); assert.equal(result.status, 0, result.stderr); }
 const first = join(root, "first");
 const second = join(root, "second");
-assert.equal(run(source, first).status, 0);
-assert.equal(run(source, second).status, 0);
+{ const result=run(source, first); assert.equal(result.status, 0, result.stderr); }
+{ const result=run(source, second); assert.equal(result.status, 0, result.stderr); }
 assert.equal(readFileSync(join(first, projection === "typescript" ? "generated.ts" : "generated.py"), "utf8"), readFileSync(join(second, projection === "typescript" ? "generated.ts" : "generated.py"), "utf8"));
 assert.equal(readFileSync(join(first, ".itdsl-ir.json"), "utf8"), readFileSync(join(second, ".itdsl-ir.json"), "utf8"));
 
