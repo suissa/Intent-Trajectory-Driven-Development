@@ -1,4 +1,4 @@
-# RFC-ITDD-0008 — Skill Semantic Model
+# RFC-T-DD-0008 — Skill Semantic Model
 
 ## Status
 Normative.
