@@ -16,4 +16,4 @@ An Atomic Skill contract.
 A Skill MUST preserve the semantics of its source Behavior.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
