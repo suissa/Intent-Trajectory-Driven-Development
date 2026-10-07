@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0012
+# Implementation — RFC-T-DD-0012
 
 Current target profiles:
 - [TypeScript Skill](../../DSL/2typescript/SKILL.md)
