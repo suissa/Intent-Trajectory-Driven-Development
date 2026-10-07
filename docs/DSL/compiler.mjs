@@ -44,7 +44,7 @@ function validate(a){
  for(var ed of edges(a.states))if(!ss.has(ed[0])||!ss.has(ed[1]))fail("ITDSL_STATE_RESOLUTION","unknown state edge");
  for(var term of a.trajectory){var base=term.replace(/\*$/g,"");if(!ID.test(base)&&!QUAL.test(base)&&!base.includes("("))fail("ITDSL_TRAJECTORY_SHAPE","invalid trajectory term "+term);}
  return true;}
-function tokenizeConstraint(s){return s.match(/→|∧|∨|¬|≠|=|∈|∉|[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?\\([^)]*\\)|\\(|\\)|[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?/g)||[];}
+function tokenizeConstraint(s){return s.match(/→|∧|∨|¬|≠|=|∈|∉|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?\([^)]*\)|\(|\)|[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)?/g)||[];}
 function parseConstraint(s){
  var t=tokenizeConstraint(canon(s)),i=0;
  function atom(){
