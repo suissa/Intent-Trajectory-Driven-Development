@@ -303,3 +303,10 @@ Static validation must not depend on execution scheduling.
 P is the DSL program and O is an observed trajectory.
 
 This separates grammar, semantic validity, and runtime conformance, a standard distinction in DSL design. citeturn0search6turn0search1
+
+
+## 22. Skill semantics
+
+A skill is a semantic transformation over declared state, authorization, input, rule, output, and evidence. Its declared state transition must exist in S and its emitted evidence must participate in the trajectory.
+
+Skill.from = currentState → Skill.rule → Skill.to = nextState → Skill.emit ∈ Evidence ∩ Trajectory
