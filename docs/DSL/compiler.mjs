@@ -35,7 +35,7 @@ function parse(src){
 function normalize(a){var sort=function(o){return Object.fromEntries(Object.keys(o).sort().map(function(k){return [k,o[k]]}))};return {version:a.version,annotation:a.annotation,destiny:a.destiny,intent:a.intent,required:a.required.slice().sort(),behavior:a.behavior,states:a.states,actors:sort(a.actors),skills:sort(a.skills),evidence:a.evidence,constraints:a.constraints,trajectory:a.trajectory};}
 function validate(a){
  if(!a.annotation)fail("ITDSL_MISSING_ANNOTATION","annotation required");if(!a.destiny.length)fail("ITDSL_MISSING_DESTINY","D required");if(!a.intent?.actor||!a.intent?.goal)fail("ITDSL_MISSING_INTENT","I required");if(!a.required.length)fail("ITDSL_MISSING_REQUIRED","R required");if(!a.behavior.length)fail("ITDSL_MISSING_BEHAVIOR","B required");if(a.states.length<2)fail("ITDSL_STATE_GRAPH","at least two states required");if(!a.evidence.length)fail("ITDSL_MISSING_EVIDENCE","E required");if(!a.trajectory.length)fail("ITDSL_MISSING_TRAJECTORY","T required");if(!a.actors[a.intent.actor])fail("ITDSL_ACTOR_RESOLUTION","intent actor is not declared");
- var ss=new Set(a.states);if(ss.size!==a.states.length)fail("ITDSL_DUPLICATE_STATE","duplicate state");for(var s of a.states)if(!ID.test(s)||RESERVED.has(s))fail("ITDSL_INVALID_STATE","invalid state "+s);
+ var constraintModel=staticConstraintCheck(a);\n var ss=new Set(a.states);if(ss.size!==a.states.length)fail("ITDSL_DUPLICATE_STATE","duplicate state");for(var s of a.states)if(!ID.test(s)||RESERVED.has(s))fail("ITDSL_INVALID_STATE","invalid state "+s);
  for(var actor of Object.keys(a.actors)){if(!ID.test(actor)||RESERVED.has(actor))fail("ITDSL_INVALID_ACTOR","invalid actor "+actor);for(var c of a.actors[actor])if(!ID.test(c)||RESERVED.has(c))fail("ITDSL_INVALID_CAPABILITY","invalid capability "+c);}
  for(var r of a.required)if(!ID.test(r))fail("ITDSL_INVALID_REQUIRED","invalid required "+r);
  for(var b of a.behavior)if(!/^[a-z][a-z0-9_]*(\([^)]*\))?\*?$/.test(b))fail("ITDSL_INVALID_BEHAVIOR","invalid behavior "+b);
@@ -44,6 +44,48 @@ function validate(a){
  for(var ed of edges(a.states))if(!ss.has(ed[0])||!ss.has(ed[1]))fail("ITDSL_STATE_RESOLUTION","unknown state edge");
  for(var term of a.trajectory){var base=term.replace(/\*$/g,"");if(!ID.test(base)&&!QUAL.test(base)&&!base.includes("("))fail("ITDSL_TRAJECTORY_SHAPE","invalid trajectory term "+term);}
  return true;}
+function tokenizeConstraint(s){return s.match(/→|∧|∨|¬|≠|=|∈|∉|\\(|\\)|[A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)?/g)||[];}
+function parseConstraint(s){
+ var t=tokenizeConstraint(canon(s)),i=0;
+ function atom(){
+  if(t[i]==="¬"){i++;return {op:"not",arg:atom()};}
+  if(t[i]==="("){i++;var x=or();if(t[i]!==")")fail("ITDSL_CONSTRAINT_SYNTAX","expected )");i++;return x;}
+  var left=t[i++];if(!left)fail("ITDSL_CONSTRAINT_SYNTAX","expected operand");
+  if(t[i]&&["=","≠","∈","∉"].includes(t[i])){var op=t[i++],right=t[i++];if(!right)fail("ITDSL_CONSTRAINT_SYNTAX","expected right operand");return {op,left,right};}
+  return {op:"fact",value:left};
+ }
+ function and(){var x=atom();while(t[i]==="∧"){i++;x={op:"and",left:x,right:atom()};}return x;}
+ function or(){var x=and();while(t[i]==="∨"){i++;x={op:"or",left:x,right:and()};}return x;}
+ var ast=or();if(i!==t.length)fail("ITDSL_CONSTRAINT_SYNTAX","unexpected token "+t[i]);return ast;
+}
+function evaluateConstraint(ast,facts){
+ if(ast.op==="fact")return facts.has(ast.value);
+ if(ast.op==="not")return !evaluateConstraint(ast.arg,facts);
+ if(ast.op==="and")return evaluateConstraint(ast.left,facts)&&evaluateConstraint(ast.right,facts);
+ if(ast.op==="or")return evaluateConstraint(ast.left,facts)||evaluateConstraint(ast.right,facts);
+ var has=facts.has(ast.left),rhs=facts.has(ast.right);
+ if(ast.op==="=")return has===rhs;
+ if(ast.op==="≠")return has!==rhs;
+ if(ast.op==="∈")return has&&rhs;
+ if(ast.op==="∉")return !has||!rhs;
+ return false;
+}
+function constraintAtoms(ast,out=[]){if(ast.op==="not")constraintAtoms(ast.arg,out);else if(ast.op==="and"||ast.op==="or"){constraintAtoms(ast.left,out);constraintAtoms(ast.right,out);}else if(ast.op==="fact")out.push(ast.value);else{out.push(ast.left,ast.right);}return [...new Set(out)];}
+function staticConstraintCheck(a){
+ var parsed=a.constraints.map(function(c){return {source:c,ast:parseConstraint(c)}});
+ var positive=new Set(),negative=new Set();
+ function collect(ast,neg=false){
+  if(ast.op==="not")return collect(ast.arg,!neg);
+  if(ast.op==="and"){collect(ast.left,neg);collect(ast.right,neg);return;}
+  if(ast.op==="fact"){(neg?negative:positive).add(ast.value);return;}
+  if((ast.op==="="||ast.op==="∈")&&ast.left===ast.right){if(neg)negative.add(ast.left);else positive.add(ast.left);}
+  if(ast.op==="≠"&&ast.left===ast.right){if(!neg)negative.add(ast.left);else positive.add(ast.left);}
+ }
+ parsed.forEach(function(x){collect(x.ast);});
+ for(var x of positive)if(negative.has(x))fail("ITDSL_CONSTRAINT_CONTRADICTION","constraint set requires and forbids "+x);
+ for(var p of parsed)if(p.ast.op==="fact"&&!p.source.startsWith("¬")){if(!a.evidence.some(e=>e.value===p.ast.value))fail("ITDSL_CONSTRAINT_UNSAT","required fact has no evidence: "+p.ast.value);}
+ return parsed;
+}
 function q(x){return JSON.stringify(x);}
 function pyq(x){return q(x).replace(/\btrue\b/g,"True").replace(/\bfalse\b/g,"False").replace(/\bnull\b/g,"None");}
 function generateTS(a){
