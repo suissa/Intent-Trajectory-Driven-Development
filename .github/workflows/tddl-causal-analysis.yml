@@ -30,4 +30,4 @@ jobs:
       - name: Test JavaScript reference runtime
         run: node --test docs/DSL/trajectory-causality.test.mjs
       - name: Test Python runtime
-        run: python -m unittest docs/DSL/test_trajectory_causality.py -v
+        run: PYTHONPATH=docs/DSL python -m unittest docs/DSL/test_trajectory_causality.py -v
