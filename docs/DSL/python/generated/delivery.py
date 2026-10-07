@@ -72,9 +72,9 @@ class DeliveryRequest:
 
     def validate(self) -> None:
         if not self.pickup or not self.dropoff:
-            raise ValueError("ITDSL_REQUIRED_INPUT")
+            raise ValueError("T-DD-DSL_REQUIRED_INPUT")
         if self.pickup == self.dropoff:
-            raise ValueError("ITDSL_PICKUP_EQUALS_DROPOFF")
+            raise ValueError("T-DD-DSL_PICKUP_EQUALS_DROPOFF")
 
 
 @dataclass(frozen=True)
@@ -89,26 +89,26 @@ def allowed(actor: Actor, capability: str) -> bool:
 
 def transition(current: DeliveryState, target: DeliveryState) -> DeliveryState:
     if target not in TRANSITIONS[current]:
-        raise ValueError("ITDSL_ILLEGAL_TRANSITION")
+        raise ValueError("T-DD-DSL_ILLEGAL_TRANSITION")
     return target
 
 
 def assert_can_release(payment_confirmed: bool) -> None:
     if not payment_confirmed:
-        raise ValueError("ITDSL_RELEASE_BEFORE_PAYMENT")
+        raise ValueError("T-DD-DSL_RELEASE_BEFORE_PAYMENT")
 
 
 def assert_can_settle(code_valid: bool, at_dropoff: bool) -> None:
     if not code_valid:
-        raise ValueError("ITDSL_INVALID_CODE")
+        raise ValueError("T-DD-DSL_INVALID_CODE")
     if not at_dropoff:
-        raise ValueError("ITDSL_NOT_AT_DROPOFF")
+        raise ValueError("T-DD-DSL_NOT_AT_DROPOFF")
 
 
 def select_nearest(couriers: list[Courier]) -> Courier:
     available = [courier for courier in couriers if courier["available"]]
     if not available:
-        raise ValueError("ITDSL_NO_AVAILABLE_COURIER")
+        raise ValueError("T-DD-DSL_NO_AVAILABLE_COURIER")
     return min(available, key=lambda courier: courier["distance"])
 
 
@@ -132,9 +132,9 @@ def validate_evidence_order(evidence: tuple[Evidence, ...]) -> None:
         try:
             current = EVIDENCE_ORDER.index(item.kind)
         except ValueError as exc:
-            raise ValueError("ITDSL_UNDECLARED_EVIDENCE") from exc
+            raise ValueError("T-DD-DSL_UNDECLARED_EVIDENCE") from exc
         if current < previous:
-            raise ValueError("ITDSL_EVIDENCE_ORDER")
+            raise ValueError("T-DD-DSL_EVIDENCE_ORDER")
         previous = current
 
 
