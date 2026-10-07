@@ -1,4 +1,4 @@
-# Intent Trajectory DSL — Symbols
+# Trajectory-Driven DSL — Symbols
 
 This document is normative. Every operator must have one defined semantic meaning in each grammatical context.
 
