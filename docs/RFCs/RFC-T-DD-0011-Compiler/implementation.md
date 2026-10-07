@@ -1,4 +1,4 @@
-# Implementation — RFC-ITDD-0011
+# Implementation — RFC-T-DD-0011
 
 The current compiler is [docs/DSL/compiler.mjs](../../DSL/compiler.mjs), with tests in [compiler.test.mjs](../../DSL/compiler.test.mjs).
 
