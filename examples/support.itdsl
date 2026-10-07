@@ -1,6 +1,6 @@
 @support
 
-D: support → opened resolved closed
+D: support → opened → resolved → closed
 I: customer → resolve
 R: subject + message
 
