@@ -1,4 +1,4 @@
-# Intent Trajectory DSL — Reserved Words
+# Trajectory-Driven DSL — Reserved Words
 
 Reserved words are part of the language contract. Implementations must not reinterpret them as ordinary identifiers.
 
