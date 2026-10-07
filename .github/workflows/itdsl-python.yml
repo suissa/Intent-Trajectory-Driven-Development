@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - "docs/DSL/**"
+      - "examples/**"
       - ".github/workflows/itdsl-python.yml"
   pull_request:
     paths:
       - "docs/DSL/**"
+      - "examples/**"
       - ".github/workflows/itdsl-python.yml"
 
 permissions:
@@ -21,22 +23,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate compiler
+        run: node docs/DSL/compiler.test.mjs
+      - name: Generate Python from DSL
+        run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/python/generated python
       - name: Classify generated language
-        id: classify
         run: |
-          language="$(python - <<'PY'
-          import json
-          import subprocess
-          result = subprocess.run(
-              ["node", "docs/DSL/classify-generated.mjs", "docs/DSL/python/generated"],
-              check=True,
-              capture_output=True,
-              text=True,
-          )
-          print(json.loads(result.stdout)["language"])
-          PY
-          )"
+          language="$(node docs/DSL/classify-generated.mjs docs/DSL/python/generated | python -c 'import json,sys; print(json.load(sys.stdin)["language"])')"
           test "$language" = "python"
       - name: Execute generated Python
         working-directory: docs/DSL/python/generated
         run: python -m unittest -v
+      - name: Re-generate and compare
+        run: |
+          tmp="$(mktemp -d)"
+          node docs/DSL/compiler.mjs examples/delivery.itdsl "$tmp" python >/dev/null
+          cmp docs/DSL/python/generated/delivery.py "$tmp/delivery.py"
+          cmp docs/DSL/python/generated/test_delivery.py "$tmp/test_delivery.py"
