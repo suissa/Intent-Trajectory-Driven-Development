@@ -16,4 +16,4 @@ A behavior flow whose steps can later be mapped to Skills.
 Behavior MUST preserve the meaning of Intent and Destination.
 
 ## Source
-[ITDD semantic SRFC](../../docs/SRFCs/SRFC-ITDD-Semantic-Model.md)
+[T-DD semantic SRFC](../../docs/SRFCs/SRFC-T-DD-Semantic-Model.md)
