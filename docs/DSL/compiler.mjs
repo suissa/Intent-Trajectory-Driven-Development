@@ -16,7 +16,7 @@ function parse(src){
  var lines=src.split(/\r?\n/),a={version:1,annotation:null,destiny:[],intent:null,required:[],behavior:[],states:[],actors:{},skills:{},evidence:[],constraints:[],trajectory:[]},section=null,skill=null;
  for(var i=0;i<lines.length;i++){var line=lines[i].trim(),n=i+1;if(!line||line.startsWith("#"))continue;
   if(line.startsWith("@")){a.annotation=line.slice(1).trim();continue;}
-  var h=line.match(/^([DIRABSKETX]):(?:\s*(.*))?$/);
+  var skillHeader=line.match(/^K\s+([a-z][a-z0-9_]*)\s*\{$/);if(skillHeader){section="K";skill=skillHeader[1];a.skills[skill]={name:skill,fields:{},line:n};continue;} var h=line.match(/^([DIRABSKETX]):(?:\s*(.*))?$/);
   if(h){section=h[1];var body=(h[2]||"").trim();
    if(section==="K" && body){var kh=body.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(!kh)fail("ITDSL_SYNTAX_SKILL","expected skill declaration",n);skill=kh[1];a.skills[skill]={name:skill,fields:{},line:n};continue;} if(section==="D")a.destiny=arrows(body);
    else if(section==="I"){var p=arrows(body);a.intent={actor:p[0],goal:p.slice(1).join("→")};}
