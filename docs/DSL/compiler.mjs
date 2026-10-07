@@ -159,9 +159,9 @@ const execution={skill:"select_courier",from:"searching",to:"assigned",input:["c
 assert.equal(conformSkillExecution(execution),true);
 const chain=[
  ["request_delivery","requested","collecting",["pickup","dropoff"],"request.received",[]],
- ["collect_addresses","collecting","recognizing",["pickup","dropoff"],"addresses.collected",["request.received"]],
- ["recognize_intent","recognizing","searching",["request"],"intent.recognized",["addresses.collected"]],
- ["select_courier","searching","assigned",["couriers","origin"],"courier.selected",["addresses.collected","intent.recognized"]],
+ ["recognize_intent","recognizing","addressing",["request"],"intent.recognized",["request.received"]],
+ ["collect_addresses","addressing","searching",["pickup","dropoff"],"addresses.collected",["intent.recognized"]],
+ ["select_courier","searching","assigned",["couriers","origin"],"courier.selected",["request.received","intent.recognized","addresses.collected"]],
  ["confirm_payment","assigned","awaiting_payment",["payment"],"payment.confirmed",["courier.selected"]],
  ["release_delivery","awaiting_payment","paid",["confirmation"],"delivery.released",["payment.confirmed"]],
  ["track_delivery","paid","active",["location"],"location.received",["delivery.released"]],
@@ -185,8 +185,8 @@ class GenericITDSLTests(unittest.TestCase):
  def test_skill_and_trajectory(self):
   chain=[
    SkillExecution("request_delivery",State.REQUESTED,State.COLLECTING,("pickup","dropoff"),actor=Actor.SYSTEM,capability="select",evidence=(Evidence("request.received",1),)),
-   SkillExecution("collect_addresses",State.COLLECTING,State.RECOGNIZING,("pickup","dropoff"),actor=Actor.SYSTEM,capability="select",facts=("request.received",),evidence=(Evidence("addresses.collected",2),)),
-   SkillExecution("recognize_intent",State.RECOGNIZING,State.SEARCHING,("request",),actor=Actor.SYSTEM,capability="select",facts=("request.received","addresses.collected"),evidence=(Evidence("intent.recognized",3),)),
+   SkillExecution("recognize_intent",State.RECOGNIZING,State.ADDRESSING,("request",),actor=Actor.SYSTEM,capability="select",facts=("request.received",),evidence=(Evidence("intent.recognized",2),)),
+   SkillExecution("collect_addresses",State.ADDRESSING,State.SEARCHING,("pickup","dropoff"),actor=Actor.SYSTEM,capability="select",facts=("request.received","intent.recognized"),evidence=(Evidence("addresses.collected",3),)),
    SkillExecution("select_courier",State.SEARCHING,State.ASSIGNED,("couriers","origin"),actor=Actor.SYSTEM,capability="select",facts=("request.received","addresses.collected","intent.recognized"),evidence=(Evidence("courier.selected",4),)),
    SkillExecution("confirm_payment",State.ASSIGNED,State.AWAITING_PAYMENT,("payment",),actor=Actor.SYSTEM,capability="select",facts=("courier.selected",),evidence=(Evidence("payment.confirmed",5),)),
    SkillExecution("release_delivery",State.AWAITING_PAYMENT,State.PAID,("confirmation",),actor=Actor.SYSTEM,capability="select",facts=("payment.confirmed",),evidence=(Evidence("delivery.released",6),)),
