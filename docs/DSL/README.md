@@ -262,3 +262,12 @@ The generated IR exposes the normalized Constraint AST as a first-class semantic
 The reference compiler now treats X as a semantic language rather than an opaque string. Constraints are parsed into a normalized Boolean AST, checked for proven contradictions, and preserved in the generated semantic IR. This establishes a boundary between syntax validity, static semantic invalidity, and runtime conformance.
 
 The current static checker is deliberately conservative: it rejects contradictions it can prove locally and rejects malformed expressions, while leaving general theorem proving and arbitrary satisfiability to a future formal backend.
+
+
+## 13. Semantic Skills
+
+A K declaration is a semantic unit, not merely a function signature. Its core relation is input → rule → output → evidence. Optional pre, post, when, from, to, requires, ensures, allows, and forbids fields refine that semantic unit. Constraint-bearing fields use the same grammar as X. When from and to are present, the compiler verifies that the transition exists in S; emitted evidence must exist in both E and T.
+
+The compiler preserves these semantics in skill_semantics and exposes them to TypeScript and Python projections.
+
+Semantic shape: precondition → authorization → input → rule → state transition → postcondition → evidence.
