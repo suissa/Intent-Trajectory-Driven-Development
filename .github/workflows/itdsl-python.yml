@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 22
       - name: Validate compiler
-        run: node docs/DSL/compiler.test.mjs
+        run: node docs/DSL/compiler.test.mjs python
       - name: Generate Python from DSL
         run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/python/generated python
       - name: Classify generated language
