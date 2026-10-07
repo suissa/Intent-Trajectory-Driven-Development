@@ -1,147 +1,69 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
-
-const source = resolve(process.argv[2] || "examples/delivery.itdsl");
-const out = resolve(process.argv[3] || "docs/DSL/2typescript/generated");
-const lang = process.argv[4] || "typescript";
-const input = readFileSync(source, "utf8");
-
-function fail(code, message, line) {
-  const suffix = line ? " at line " + line : "";
-  throw new Error(code + suffix + ": " + message);
+const source=resolve(process.argv[2]||"examples/delivery.itdsl");
+const out=resolve(process.argv[3]||"docs/DSL/2typescript/generated");
+const target=process.argv[4]||"typescript";
+const input=readFileSync(source,"utf8");
+function fail(code,msg,line){throw new Error(code+(line?" at line "+line:"")+": "+msg);}
+const ID=/^[a-z][a-z0-9_]*$/; const QUAL=/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
+const RESERVED=new Set(["D","I","R","B","S","A","K","E","X","T","in","out","rule","emit","pre","post","when","from","to","requires","ensures","allows","forbids","min","max","one","all","any","none","some","true","false","and","or","not"]);
+function canon(s){return s.replace(/->/g,"→").replace(/\band\b/g,"∧").replace(/\bor\b/g,"∨").replace(/\bnot\b/g,"¬").replace(/!=/g,"≠");}
+function arrows(s){return canon(s).split("→").map(function(x){return x.trim()}).filter(Boolean);}
+function cardinality(s){var m=s.match(/^(.+?)(?:\{(\d+)\.\.(\d+|\*)\}|\*)$/);if(!m)return {value:s,min:1,max:1,repeatable:false};return {value:m[1].trim(),min:m[2]?Number(m[2]):0,max:m[3]?m[3]==="*"?"*":Number(m[3]):"*",repeatable:true};}
+function edges(xs){var e=[];for(var i=0;i<xs.length-1;i++)e.push([xs[i],xs[i+1]]);return e;}
+function parse(src){
+ var lines=src.split(/\r?\n/),a={version:1,annotation:null,destiny:[],intent:null,required:[],behavior:[],states:[],actors:{},skills:{},evidence:[],constraints:[],trajectory:[]},section=null,skill=null;
+ for(var i=0;i<lines.length;i++){var line=lines[i].trim(),n=i+1;if(!line||line.startsWith("#"))continue;
+  if(line.startsWith("@")){a.annotation=line.slice(1).trim();continue;}
+  var skillHeader=line.match(/^K\s+([a-z][a-z0-9_]*)\s*\{$/);if(skillHeader){section="K";skill=skillHeader[1];a.skills[skill]={name:skill,fields:{},line:n};continue;} var h=line.match(/^([DIRABSKETX]):(?:\s*(.*))?$/);
+  if(h){section=h[1];var body=(h[2]||"").trim();
+   if(section==="K" && body){var kh=body.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(!kh)fail("ITDSL_SYNTAX_SKILL","expected skill declaration",n);skill=kh[1];a.skills[skill]={name:skill,fields:{},line:n};continue;} if(section==="D")a.destiny=arrows(body);
+   else if(section==="I"){var p=arrows(body);a.intent={actor:p[0],goal:p.slice(1).join("→")};}
+   else if(section==="R")a.required=body.split(/\s*\+\s*/).filter(Boolean);
+   else if(section==="B")a.behavior=a.behavior.concat(arrows(body));
+   else if(section==="S")a.states=a.states.concat(arrows(body));
+   else if(section==="E")a.evidence=a.evidence.concat(arrows(body).map(cardinality));
+   else if(section==="T")a.trajectory=a.trajectory.concat(arrows(body));
+   else if(section==="X"&&body)a.constraints.push(canon(body)); continue;}
+  if(["B","S","E","T"].includes(section)){var vals=arrows(line);a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]]=a[{B:"behavior",S:"states",E:"evidence",T:"trajectory"}[section]].concat(section==="E"?vals.map(cardinality):vals);continue;}
+  if(section==="A"){var am=line.match(/^([a-z][a-z0-9_]*)\s*\{([^}]*)\}$/);if(!am)fail("ITDSL_SYNTAX_ACTOR","expected actor { capabilities }",n);a.actors[am[1]]=am[2].trim().split(/\s+/).filter(Boolean);continue;}
+  if(section==="K"){var inline=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(inline){skill=inline[1];a.skills[skill]={name:skill,fields:{},line:n};continue;}var sm=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);if(sm){skill=sm[1];a.skills[skill]={name:skill,fields:{},line:n};continue;}if(line=== "}"){skill=null;continue;}if(!skill)fail("ITDSL_SYNTAX_SKILL","field outside skill",n);var fm=line.match(/^(in|out|rule|emit|pre|post|when|from|to|requires|ensures|allows|forbids):\s*(.*)$/);if(!fm)fail("ITDSL_SYNTAX_SKILL","expected skill field",n);a.skills[skill].fields[fm[1]]=canon(fm[2]);continue;}
+  if(section==="X"){a.constraints.push(canon(line));continue;} fail("ITDSL_SYNTAX","unrecognized declaration",n);
+ } return a;
 }
-function splitArrow(s) { return s.split(/→|->/).map(function(x){return x.trim();}).filter(Boolean); }
-function parse(src) {
-  const lines=src.split(/\r?\n/);
-  const a={annotation:null,destiny:[],intent:null,required:[],behavior:[],states:[],actors:{},skills:{},evidence:[],constraints:[],trajectory:[]};
-  let section=null, skill=null;
-  for(let i=0;i<lines.length;i++){
-    const raw=lines[i], line=raw.trim(), n=i+1;
-    if(!line || line.startsWith("#")) continue;
-    if(line.startsWith("@")){a.annotation=line.slice(1).trim();continue;}
-    const h=line.match(/^([DIRABSKETX]):\s*(.*)$/);
-    if(h){
-      section=h[1]; const body=h[2];
-      if(section==="D") a.destiny=splitArrow(body);
-      else if(section==="I"){const p=splitArrow(body);a.intent={actor:p[0],goal:p.slice(1).join("→")};}
-      else if(section==="R") a.required=body.split(/\s*\+\s*/).map(function(x){return x.trim();}).filter(Boolean);
-      else if(section==="B") a.behavior=splitArrow(body);
-      else if(section==="S") a.states=splitArrow(body);
-      else if(section==="E") a.evidence=splitArrow(body);
-      else if(section==="T") a.trajectory=splitArrow(body);
-      else if(section==="X" && body) a.constraints.push(body);
-      continue;
-    }
-    if(section==="B"){a.behavior=a.behavior.concat(splitArrow(line));continue;}
-    if(section==="S"){a.states=a.states.concat(splitArrow(line));continue;}
-    if(section==="E"){a.evidence=a.evidence.concat(splitArrow(line));continue;}
-    if(section==="T"){a.trajectory=a.trajectory.concat(splitArrow(line));continue;}
-    if(section==="A"){
-      const m=line.match(/^([a-z][a-z0-9_]*)\s*\{([^}]*)\}$/);
-      if(!m) fail("ITDSL_SYNTAX_ACTOR","expected actor { capabilities }",n);
-      a.actors[m[1]]=m[2].trim().split(/\s+/).filter(Boolean); continue;
-    }
-    if(section==="K"){
-      const start=line.match(/^([a-z][a-z0-9_]*)\s*\{$/);
-      if(start){skill=start[1];a.skills[skill]={name:skill,fields:{}};continue;}
-      if(line==="}"){skill=null;continue;}
-      if(!skill) fail("ITDSL_SYNTAX_SKILL","skill field outside block",n);
-      const f=line.match(/^(in|out|rule|emit|pre|post|when):\s*(.*)$/);
-      if(!f) fail("ITDSL_SYNTAX_SKILL","expected field",n);
-      a.skills[skill].fields[f[1]]=f[2];continue;
-    }
-    if(section==="X"){a.constraints.push(line);continue;}
-    fail("ITDSL_SYNTAX","unrecognized declaration",n);
-  }
-  return a;
-}
-function normalize(a){
-  const sortObj=function(o){return Object.fromEntries(Object.keys(o).sort().map(function(k){return [k,o[k]];}));};
-  return {annotation:a.annotation,destiny:a.destiny,intent:a.intent,required:a.required,behavior:a.behavior,states:a.states,actors:sortObj(a.actors),skills:sortObj(a.skills),evidence:a.evidence,constraints:a.constraints,trajectory:a.trajectory};
-}
+function normalize(a){var sort=function(o){return Object.fromEntries(Object.keys(o).sort().map(function(k){return [k,o[k]]}))};return {version:a.version,annotation:a.annotation,destiny:a.destiny,intent:a.intent,required:a.required.slice().sort(),behavior:a.behavior,states:a.states,actors:sort(a.actors),skills:sort(a.skills),evidence:a.evidence,constraints:a.constraints,trajectory:a.trajectory};}
 function validate(a){
-  if(!a.annotation) fail("ITDSL_MISSING_ANNOTATION","@annotation is required");
-  if(!a.destiny.length) fail("ITDSL_MISSING_DESTINY","D is required");
-  if(!a.intent || !a.intent.actor || !a.intent.goal) fail("ITDSL_MISSING_INTENT","I is required");
-  if(!a.required.length) fail("ITDSL_MISSING_REQUIRED","R is required");
-  if(!a.behavior.length) fail("ITDSL_MISSING_BEHAVIOR","B is required");
-  if(a.states.length<2) fail("ITDSL_STATE_GRAPH","at least two states are required");
-  if(!a.evidence.length) fail("ITDSL_MISSING_EVIDENCE","E is required");
-  if(!a.actors[a.intent.actor]) fail("ITDSL_ACTOR_RESOLUTION","intent actor is not declared");
-  for(const s of a.states) if(!/^[a-z][a-z0-9_]*$/.test(s)) fail("ITDSL_INVALID_STATE",s);
-  for(const actor of Object.keys(a.actors)){
-    if(!/^[a-z][a-z0-9_]*$/.test(actor)) fail("ITDSL_INVALID_ACTOR",actor);
-    for(const c of a.actors[actor]) if(!/^[a-z][a-z0-9_]*$/.test(c)) fail("ITDSL_INVALID_CAPABILITY",c);
-  }
-  const ev=a.evidence.map(function(x){return x.replace(/\*$/,"");});
-  if(new Set(ev).size!==ev.length) fail("ITDSL_DUPLICATE_EVIDENCE","duplicate evidence");
-  for(const e of ev) if(!/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/.test(e)) fail("ITDSL_INVALID_EVIDENCE",e);
-  for(const b of a.behavior) if(!/^[a-z][a-z0-9_]*(\([^)]*\))?\*?$/.test(b)) fail("ITDSL_INVALID_BEHAVIOR",b);
-  const st=new Set(a.states);
-  if(a.states[0]!== "requested") fail("ITDSL_ENTRY_STATE","delivery generator requires requested as entry state");
-  for(const s of a.states) if(!st.has(s)) fail("ITDSL_STATE_RESOLUTION","unknown state");
-  return true;
-}
+ if(!a.annotation)fail("ITDSL_MISSING_ANNOTATION","annotation required");if(!a.destiny.length)fail("ITDSL_MISSING_DESTINY","D required");if(!a.intent?.actor||!a.intent?.goal)fail("ITDSL_MISSING_INTENT","I required");if(!a.required.length)fail("ITDSL_MISSING_REQUIRED","R required");if(!a.behavior.length)fail("ITDSL_MISSING_BEHAVIOR","B required");if(a.states.length<2)fail("ITDSL_STATE_GRAPH","at least two states required");if(!a.evidence.length)fail("ITDSL_MISSING_EVIDENCE","E required");if(!a.trajectory.length)fail("ITDSL_MISSING_TRAJECTORY","T required");if(!a.actors[a.intent.actor])fail("ITDSL_ACTOR_RESOLUTION","intent actor is not declared");
+ var ss=new Set(a.states);if(ss.size!==a.states.length)fail("ITDSL_DUPLICATE_STATE","duplicate state");for(var s of a.states)if(!ID.test(s)||RESERVED.has(s))fail("ITDSL_INVALID_STATE","invalid state "+s);
+ for(var actor of Object.keys(a.actors)){if(!ID.test(actor)||RESERVED.has(actor))fail("ITDSL_INVALID_ACTOR","invalid actor "+actor);for(var c of a.actors[actor])if(!ID.test(c)||RESERVED.has(c))fail("ITDSL_INVALID_CAPABILITY","invalid capability "+c);}
+ for(var r of a.required)if(!ID.test(r))fail("ITDSL_INVALID_REQUIRED","invalid required "+r);
+ for(var b of a.behavior)if(!/^[a-z][a-z0-9_]*(\([^)]*\))?\*?$/.test(b))fail("ITDSL_INVALID_BEHAVIOR","invalid behavior "+b);
+ var ev=new Set();for(var e of a.evidence){if(!QUAL.test(e.value))fail("ITDSL_INVALID_EVIDENCE","invalid evidence "+e.value);if(ev.has(e.value))fail("ITDSL_DUPLICATE_EVIDENCE","duplicate evidence "+e.value);ev.add(e.value);}
+ for(var name of Object.keys(a.skills)){var k=a.skills[name];if(!ID.test(name)||RESERVED.has(name))fail("ITDSL_INVALID_SKILL","invalid skill "+name);for(var req of ["in","out","rule","emit"])if(!k.fields[req])fail("ITDSL_SKILL_SHAPE","skill "+name+" requires "+req);if(!QUAL.test(k.fields.emit))fail("ITDSL_SKILL_EVIDENCE","skill emit must be qualified evidence");if(!ev.has(k.fields.emit))fail("ITDSL_SKILL_EVIDENCE","skill emits undeclared evidence "+k.fields.emit);if(/\b(min|max)\s*$/.test(k.fields.rule))fail("ITDSL_SKILL_RULE","selection rule requires operand");}
+ for(var ed of edges(a.states))if(!ss.has(ed[0])||!ss.has(ed[1]))fail("ITDSL_STATE_RESOLUTION","unknown state edge");
+ for(var term of a.trajectory){var base=term.replace(/\*$/g,"");if(!ID.test(base)&&!QUAL.test(base)&&!base.includes("("))fail("ITDSL_TRAJECTORY_SHAPE","invalid trajectory term "+term);}
+ return true;}
 function q(x){return JSON.stringify(x);}
+function pyq(x){return q(x).replace(/\btrue\b/g,"True").replace(/\bfalse\b/g,"False").replace(/\bnull\b/g,"None");}
 function generateTS(a){
-  let states=a.states.slice(); if(states.indexOf("failed")<0) states.push("failed");
-  const tr={}; for(let i=0;i<states.length;i++) tr[states[i]]=i<states.length-1?[states[i+1]]:[];
-  for(const s of ["collecting","searching","assigned","active"]) if(tr[s] && tr[s].indexOf("failed")<0) tr[s].push("failed");
-  const actors=Object.keys(a.actors), caps=[...new Set(Object.values(a.actors).flat())], ev=a.evidence.map(function(x){return x.replace(/\*$/,"");});
-  let s="export type DeliveryState =\n"+states.map(function(x){return '  | "'+x+'"';}).join("\n")+";\n\n";
-  s+="export type Actor = "+actors.map(function(x){return '"'+x+'"';}).join(" | ")+";\n";
-  s+="export type Capability = "+caps.map(function(x){return '"'+x+'"';}).join(" | ")+";\n";
-  s+="export type EvidenceType =\n"+ev.map(function(x){return '  | "'+x+'"';}).join("\n")+";\n\n";
-  s+="export interface Evidence { readonly type: EvidenceType; readonly at: number; }\n";
-  s+="export interface DeliveryRequest { readonly pickup: string; readonly dropoff: string; }\n";
-  s+="export const destiny = "+q(a.destiny)+" as const;\nexport const required = "+q(a.required)+" as const;\nexport const behavior = "+q(a.behavior)+" as const;\n";
-  s+="export const transitions: Readonly<Record<DeliveryState, readonly DeliveryState[]>> = "+q(tr)+" as const;\n";
-  s+="export const authorization: Readonly<Record<Actor, readonly Capability[]>> = "+q(a.actors)+" as const;\n";
-  s+='export function allowed(actor: Actor, capability: Capability): boolean { return authorization[actor].includes(capability); }\n';
-  s+='export function transition(from: DeliveryState, to: DeliveryState): DeliveryState { if (!transitions[from].includes(to)) throw new Error("ITDSL_ILLEGAL_TRANSITION"); return to; }\n';
-  s+='export function validateRequest(request: DeliveryRequest): void { if (!request.pickup || !request.dropoff) throw new Error("ITDSL_REQUIRED_INPUT"); if (request.pickup === request.dropoff) throw new Error("ITDSL_PICKUP_EQUALS_DROPOFF"); }\n';
-  s+='export function assertCanRelease(paymentConfirmed: boolean): void { if (!paymentConfirmed) throw new Error("ITDSL_RELEASE_BEFORE_PAYMENT"); }\n';
-  s+='export function assertCanSettle(codeValid: boolean, atDropoff: boolean): void { if (!codeValid) throw new Error("ITDSL_INVALID_CODE"); if (!atDropoff) throw new Error("ITDSL_NOT_AT_DROPOFF"); }\n';
-  s+='export function selectNearest<T extends { readonly available: boolean; readonly distance: number }>(couriers: readonly T[]): T { const available=couriers.filter(c=>c.available); if (!available.length) throw new Error("ITDSL_NO_AVAILABLE_COURIER"); return available.reduce((a,b)=>b.distance<a.distance?b:a); }\n';
-  s+="export const evidenceOrder: readonly EvidenceType[] = "+q(ev)+";\n";
-  s+='export function validateEvidenceOrder(evidence: readonly Evidence[]): void { let previous=-1; for(const item of evidence){ const current=evidenceOrder.indexOf(item.type); if(current<0) throw new Error("ITDSL_UNDECLARED_EVIDENCE"); if(current<previous) throw new Error("ITDSL_EVIDENCE_ORDER"); previous=current; } }\n';
-  s+='export function conforms(evidence: readonly Evidence[]): boolean { try { validateEvidenceOrder(evidence); const kinds=new Set(evidence.map(x=>x.type)); return kinds.has("request.received") && kinds.has("settlement.completed"); } catch { return false; } }\n';
-  s+="export const repeatableEvidence = "+q(a.evidence.filter(function(x){return x.endsWith("*");}).map(function(x){return x.slice(0,-1);}))+ " as const;\n";
-  return s;
-}
-function generateTSTest(){
-return 'import assert from "node:assert/strict";\nimport { allowed, assertCanRelease, assertCanSettle, conforms, selectNearest, transition, validateEvidenceOrder, validateRequest } from "./delivery.js";\n'+
-'assert.doesNotThrow(()=>validateRequest({pickup:"A",dropoff:"B"}));\nassert.throws(()=>validateRequest({pickup:"A",dropoff:"A"}),/ITDSL_PICKUP_EQUALS_DROPOFF/);\n'+
-'assert.equal(transition("requested","collecting"),"collecting"); assert.throws(()=>transition("requested","settled"),/ITDSL_ILLEGAL_TRANSITION/);\n'+
-'assert.equal(allowed("customer","pay"),true); assert.equal(allowed("customer","settle"),false);\n'+
-'assert.throws(()=>assertCanRelease(false),/ITDSL_RELEASE_BEFORE_PAYMENT/); assert.doesNotThrow(()=>assertCanRelease(true));\n'+
-'assert.throws(()=>assertCanSettle(false,true),/ITDSL_INVALID_CODE/); assert.throws(()=>assertCanSettle(true,false),/ITDSL_NOT_AT_DROPOFF/); assert.doesNotThrow(()=>assertCanSettle(true,true));\n'+
-'assert.equal(selectNearest([{available:true,distance:20},{available:true,distance:5},{available:false,distance:1}]).distance,5);\n'+
-'const evidence=[{type:"request.received" as const,at:1},{type:"intent.recognized" as const,at:2},{type:"addresses.collected" as const,at:3},{type:"courier.selected" as const,at:4},{type:"payment.confirmed" as const,at:5},{type:"delivery.released" as const,at:6},{type:"location.received" as const,at:7},{type:"location.received" as const,at:8},{type:"code.validated" as const,at:9},{type:"settlement.completed" as const,at:10}];\n'+
-'assert.doesNotThrow(()=>validateEvidenceOrder(evidence)); assert.equal(conforms(evidence),true); assert.throws(()=>validateEvidenceOrder([{type:"payment.confirmed" as const,at:1},{type:"request.received" as const,at:2}]),/ITDSL_EVIDENCE_ORDER/);\nconsole.log("TS generated ITDSL conformance: PASS");\n';
-}
-function generatePy(a){
-  let states=a.states.slice(); if(states.indexOf("failed")<0) states.push("failed");
-  const tr={}; for(let i=0;i<states.length;i++) tr[states[i]]=i<states.length-1?[states[i+1]]:[];
-  for(const x of ["collecting","searching","assigned","active"]) if(tr[x] && tr[x].indexOf("failed")<0) tr[x].push("failed");
-  const ev=a.evidence.map(function(x){return x.replace(/\*$/,"");});
-  let s="from __future__ import annotations\nfrom dataclasses import dataclass\nfrom enum import StrEnum\nfrom typing import Final\n\n";
-  s+="class DeliveryState(StrEnum):\n"+states.map(function(x){return "    "+x.toUpperCase()+' = "'+x+'"';}).join("\n")+"\n\n";
-  s+="class Actor(StrEnum):\n"+Object.keys(a.actors).map(function(x){return "    "+x.toUpperCase()+' = "'+x+'"';}).join("\n")+"\n\n";
-  s+="DESTINY: Final = "+q(a.destiny)+"\nREQUIRED: Final = "+q(a.required)+"\nBEHAVIOR: Final = "+q(a.behavior)+"\n";
-  s+="TRANSITIONS: Final = {\n"+Object.entries(tr).map(function(e){return "    DeliveryState."+e[0].toUpperCase()+": frozenset({"+e[1].map(function(x){return "DeliveryState."+x.toUpperCase();}).join(", ")+"}),";}).join("\n")+"\n}\n";
-  s+="AUTHORIZATION: Final = {\n"+Object.entries(a.actors).map(function(e){return "    Actor."+e[0].toUpperCase()+": frozenset("+q(e[1])+"),";}).join("\n")+"\n}\n\n";
-  s+='@dataclass(frozen=True)\nclass DeliveryRequest:\n    pickup: str\n    dropoff: str\n    def validate(self) -> None:\n        if not self.pickup or not self.dropoff: raise ValueError("ITDSL_REQUIRED_INPUT")\n        if self.pickup == self.dropoff: raise ValueError("ITDSL_PICKUP_EQUALS_DROPOFF")\n\n@dataclass(frozen=True)\nclass Evidence:\n    kind: str\n    at: int\n\ndef allowed(actor: Actor, capability: str) -> bool: return capability in AUTHORIZATION[actor]\ndef transition(current: DeliveryState, target: DeliveryState) -> DeliveryState:\n    if target not in TRANSITIONS[current]: raise ValueError("ITDSL_ILLEGAL_TRANSITION")\n    return target\ndef assert_can_release(payment_confirmed: bool) -> None:\n    if not payment_confirmed: raise ValueError("ITDSL_RELEASE_BEFORE_PAYMENT")\ndef assert_can_settle(code_valid: bool, at_dropoff: bool) -> None:\n    if not code_valid: raise ValueError("ITDSL_INVALID_CODE")\n    if not at_dropoff: raise ValueError("ITDSL_NOT_AT_DROPOFF")\ndef select_nearest(couriers: list[dict]) -> dict:\n    available=[c for c in couriers if c["available"]]\n    if not available: raise ValueError("ITDSL_NO_AVAILABLE_COURIER")\n    return min(available,key=lambda c:c["distance"])\n';
-  s+="EVIDENCE_ORDER: Final = "+q(ev)+"\ndef validate_evidence_order(evidence: tuple[Evidence,...]) -> None:\n    previous=-1\n    for item in evidence:\n        try: current=EVIDENCE_ORDER.index(item.kind)\n        except ValueError as exc: raise ValueError(\"ITDSL_UNDECLARED_EVIDENCE\") from exc\n        if current < previous: raise ValueError(\"ITDSL_EVIDENCE_ORDER\")\n        previous=current\n\ndef conforms(evidence: tuple[Evidence,...]) -> bool:\n    try: validate_evidence_order(evidence)\n    except ValueError: return False\n    kinds={x.kind for x in evidence}\n    return \"request.received\" in kinds and \"settlement.completed\" in kinds\n";
-  return s;
-}
-function generatePyTest(){
-return 'import unittest\nfrom delivery import Actor,DeliveryRequest,DeliveryState,Evidence,allowed,assert_can_release,assert_can_settle,conforms,select_nearest,transition,validate_evidence_order\nclass GeneratedDeliveryTests(unittest.TestCase):\n def test_constraints(self):\n  DeliveryRequest("A","B").validate()\n  with self.assertRaisesRegex(ValueError,"ITDSL_PICKUP_EQUALS_DROPOFF"): DeliveryRequest("A","A").validate()\n def test_transition(self):\n  self.assertEqual(transition(DeliveryState.REQUESTED,DeliveryState.COLLECTING),DeliveryState.COLLECTING)\n  with self.assertRaisesRegex(ValueError,"ITDSL_ILLEGAL_TRANSITION"): transition(DeliveryState.REQUESTED,DeliveryState.SETTLED)\n def test_authorization(self): self.assertTrue(allowed(Actor.CUSTOMER,"pay")); self.assertFalse(allowed(Actor.CUSTOMER,"settle"))\n def test_forbidden(self):\n  with self.assertRaisesRegex(ValueError,"ITDSL_RELEASE_BEFORE_PAYMENT"): assert_can_release(False)\n  with self.assertRaisesRegex(ValueError,"ITDSL_INVALID_CODE"): assert_can_settle(False,True)\n  with self.assertRaisesRegex(ValueError,"ITDSL_NOT_AT_DROPOFF"): assert_can_settle(True,False)\n  assert_can_release(True); assert_can_settle(True,True)\n def test_skill(self): self.assertEqual(select_nearest([{"available":True,"distance":20},{"available":True,"distance":5},{"available":False,"distance":1}])["distance"],5)\n def test_evidence(self):\n  e=(Evidence("request.received",1),Evidence("intent.recognized",2),Evidence("addresses.collected",3),Evidence("courier.selected",4),Evidence("payment.confirmed",5),Evidence("delivery.released",6),Evidence("location.received",7),Evidence("location.received",8),Evidence("code.validated",9),Evidence("settlement.completed",10))\n  validate_evidence_order(e); self.assertTrue(conforms(e))\n  with self.assertRaisesRegex(ValueError,"ITDSL_EVIDENCE_ORDER"): validate_evidence_order((Evidence("payment.confirmed",1),Evidence("request.received",2)))\nif __name__=="__main__": unittest.main(verbosity=2)\n';
-}
-const ast=normalize(parse(input)); validate(ast); mkdirSync(out,{recursive:true});
-if(lang==="typescript"){writeFileSync(resolve(out,"delivery.ts"),generateTS(ast));writeFileSync(resolve(out,"delivery.test.ts"),generateTSTest());}
-else if(lang==="python"){writeFileSync(resolve(out,"delivery.py"),generatePy(ast));writeFileSync(resolve(out,"test_delivery.py"),generatePyTest());}
-else fail("ITDSL_TARGET","target must be typescript or python");
-writeFileSync(resolve(out,".itdsl-normalized.json"),JSON.stringify(ast,null,2)+"\n");
-console.log(JSON.stringify({ok:true,language:lang,source,output:out}));
+ var states=a.states,actors=Object.keys(a.actors),caps=[...new Set(Object.values(a.actors).flat())],ev=a.evidence, tr={};states.forEach(function(s){tr[s]=[]});edges(states).forEach(function(e){tr[e[0]].push(e[1])});
+ var skills=Object.values(a.skills).map(function(k){return {name:k.name,fields:k.fields}});
+ var s="// GENERATED FROM ITDSL — DO NOT EDIT\n";s+="export type State = "+states.map(function(x){return JSON.stringify(x)}).join(" | ")+";\n";s+="export type Actor = "+actors.map(function(x){return JSON.stringify(x)}).join(" | ")+";\n";s+="export type Capability = "+caps.map(function(x){return JSON.stringify(x)}).join(" | ")+";\n";s+="export type EvidenceType = "+ev.map(function(x){return JSON.stringify(x.value)}).join(" | ")+";\n\n";
+ s+="export const destiny="+q(a.destiny)+" as const;\nexport const intent="+q(a.intent)+" as const;\nexport const required="+q(a.required)+" as const;\nexport const behavior="+q(a.behavior)+" as const;\nexport const trajectory="+q(a.trajectory)+" as const;\nexport const constraints="+q(a.constraints)+" as const;\nexport const evidence="+q(ev)+" as const;\nexport const skills="+q(skills)+" as const;\n";
+ s+="export const transitions: Readonly<Record<State,readonly State[]>>="+q(tr)+" as const;\nexport const authorization: Readonly<Record<Actor,readonly Capability[]>>="+q(a.actors)+" as const;\n";
+ s+="export type Evidence={readonly type:EvidenceType;readonly at:number};\nexport function allowed(actor:Actor,capability:Capability):boolean{return authorization[actor].includes(capability)}\n";
+ s+="export function transition(from:State,to:State):State{if(!transitions[from].includes(to))throw new Error(\"ITDSL_ILLEGAL_TRANSITION\");return to}\n";
+ s+="export function validateEvidenceOrder(items:readonly Evidence[]):void{let previous=-1;const counts=new Map<string,number>();for(const item of items){const i=evidence.findIndex(function(x){return x.value===item.type});if(i<0)throw new Error(\"ITDSL_UNDECLARED_EVIDENCE\");if(i<previous)throw new Error(\"ITDSL_EVIDENCE_ORDER\");previous=i;counts.set(item.type,(counts.get(item.type)||0)+1)}for(const spec of evidence){const n=counts.get(spec.value)||0;if(n<spec.min)throw new Error(\"ITDSL_EVIDENCE_MIN\");if(spec.max!==\"*\"&&n>spec.max)throw new Error(\"ITDSL_EVIDENCE_MAX\")}}\n";
+ s+="export function assertConstraint(condition:boolean,code:string):void{if(!condition)throw new Error(\"ITDSL_CONSTRAINT:\"+code)}\nexport function conforms(items:readonly Evidence[]):boolean{try{validateEvidenceOrder(items);return true}catch{return false}}\n";return s;}
+function generatePy(a){var states=a.states,actors=Object.keys(a.actors),ev=a.evidence,tr={};states.forEach(function(s){tr[s]=[]});edges(states).forEach(function(e){tr[e[0]].push(e[1])});var skills=Object.values(a.skills).map(function(k){return {name:k.name,fields:k.fields}});
+ var s="# GENERATED FROM ITDSL — DO NOT EDIT\nfrom __future__ import annotations\nfrom dataclasses import dataclass\nfrom enum import StrEnum\nfrom typing import Final, Literal\n\nclass State(StrEnum):\n";s+=states.map(function(x){return "    "+x.toUpperCase()+" = "+q(x)}).join("\n")+"\n\nclass Actor(StrEnum):\n";s+=actors.map(function(x){return "    "+x.toUpperCase()+" = "+q(x)}).join("\n")+"\n\n";
+ s+="DESTINY: Final="+pyq(a.destiny)+"\nINTENT: Final="+pyq(a.intent)+"\nREQUIRED: Final="+pyq(a.required)+"\nBEHAVIOR: Final="+pyq(a.behavior)+"\nTRAJECTORY: Final="+pyq(a.trajectory)+"\nCONSTRAINTS: Final="+pyq(a.constraints)+"\nEVIDENCE: Final="+pyq(ev)+"\nSKILLS: Final="+pyq(skills)+"\n";
+ s+="TRANSITIONS: Final={"+Object.keys(tr).map(function(k){return "State."+k.toUpperCase()+": frozenset({"+tr[k].map(function(x){return "State."+x.toUpperCase()}).join(",")+"})"}).join(",")+"}\nAUTHORIZATION: Final={"+Object.keys(a.actors).map(function(k){return "Actor."+k.toUpperCase()+": frozenset("+pyq(a.actors[k])+")"}).join(",")+"}\n\n";
+ s+="@dataclass(frozen=True)\nclass Evidence:\n    kind: str\n    at: int\n\ndef allowed(actor: Actor, capability: str) -> bool:\n    return capability in AUTHORIZATION[actor]\n\ndef transition(current: State, target: State) -> State:\n    if target not in TRANSITIONS[current]: raise ValueError(\"ITDSL_ILLEGAL_TRANSITION\")\n    return target\n\ndef validate_evidence_order(items: tuple[Evidence,...]) -> None:\n    order=tuple(x[\"value\"] for x in EVIDENCE); previous=-1; counts={}\n    for item in items:\n        try: i=order.index(item.kind)\n        except ValueError as exc: raise ValueError(\"ITDSL_UNDECLARED_EVIDENCE\") from exc\n        if i<previous: raise ValueError(\"ITDSL_EVIDENCE_ORDER\")\n        previous=i; counts[item.kind]=counts.get(item.kind,0)+1\n    for spec in EVIDENCE:\n        n=counts.get(spec[\"value\"],0)\n        if n<spec[\"min\"]: raise ValueError(\"ITDSL_EVIDENCE_MIN\")\n        if spec[\"max\"]!=\"*\" and n>spec[\"max\"]: raise ValueError(\"ITDSL_EVIDENCE_MAX\")\n\ndef conforms(items: tuple[Evidence,...]) -> bool:\n    try: validate_evidence_order(items); return True\n    except ValueError: return False\n\ndef assert_constraint(condition: bool, code: str) -> None:\n    if not condition: raise ValueError(\"ITDSL_CONSTRAINT:\"+code)\n";return s;}
+function testTS(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],s=a.states,ev=a.evidence.map(function(x){return x.value});return "import assert from 'node:assert/strict';\nimport {allowed,assertConstraint,conforms,transition,validateEvidenceOrder} from './generated.ts';\nassert.equal(allowed("+q(actor)+","+q(cap)+"),true);\nassert.equal(transition("+q(s[0])+","+q(s[1])+").toString(),"+q(s[1])+");\nassert.throws(()=>transition("+q(s[0])+","+q(s[s.length-1])+"),/ITDSL_ILLEGAL_TRANSITION/);\nconst valid="+q(ev)+".map((type,i)=>({type,at:i+1}));\nassert.doesNotThrow(()=>validateEvidenceOrder(valid));assert.equal(conforms(valid),true);assert.throws(()=>validateEvidenceOrder([...valid].reverse()),/ITDSL_EVIDENCE_ORDER/);assert.throws(()=>assertConstraint(false,'forbidden'),/ITDSL_CONSTRAINT:forbidden/);\nconsole.log('Generic ITDSL TypeScript conformance: PASS');\n";}
+function testPy(a){var actor=Object.keys(a.actors)[0],cap=a.actors[actor][0],s=a.states,ev=a.evidence.map(function(x){return x.value});return "import unittest\nfrom generated import Actor,State,Evidence,allowed,assert_constraint,conforms,transition,validate_evidence_order\nclass GenericITDSLTests(unittest.TestCase):\n def test_auth(self): self.assertTrue(allowed(Actor."+actor.toUpperCase()+", "+q(cap)+"))\n def test_state(self):\n  self.assertEqual(transition(State."+s[0].toUpperCase()+",State."+s[1].toUpperCase()+"),State."+s[1].toUpperCase()+")\n  with self.assertRaisesRegex(ValueError,'ITDSL_ILLEGAL_TRANSITION'): transition(State."+s[0].toUpperCase()+",State."+s[s.length-1].toUpperCase()+")\n def test_evidence(self):\n  e=tuple(Evidence(x,i+1) for i,x in enumerate("+q(ev)+"));validate_evidence_order(e);self.assertTrue(conforms(e))\n  with self.assertRaisesRegex(ValueError,'ITDSL_EVIDENCE_ORDER'): validate_evidence_order(tuple(reversed(e)))\n def test_constraint(self):\n  with self.assertRaisesRegex(ValueError,'ITDSL_CONSTRAINT:forbidden'): assert_constraint(False,'forbidden')\nif __name__=='__main__': unittest.main(verbosity=2)\n";}
+const ast=normalize(parse(input));validate(ast);mkdirSync(out,{recursive:true});
+if(target==="typescript"){writeFileSync(resolve(out,"generated.ts"),generateTS(ast));writeFileSync(resolve(out,"generated.test.ts"),testTS(ast));}
+else if(target==="python"){writeFileSync(resolve(out,"generated.py"),generatePy(ast));writeFileSync(resolve(out,"test_generated.py"),testPy(ast));}else fail("ITDSL_TARGET","target must be typescript or python");
+writeFileSync(resolve(out,".itdsl-ir.json"),JSON.stringify(ast,null,2)+"\n");console.log(JSON.stringify({ok:true,target,source,output:out}));

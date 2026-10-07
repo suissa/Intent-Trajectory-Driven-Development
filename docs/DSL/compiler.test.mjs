@@ -5,22 +5,25 @@ import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const compiler = new URL("./compiler.mjs", import.meta.url).pathname;
+const projection = process.argv[2] || "typescript";
 const source = new URL("../../examples/delivery.itdsl", import.meta.url).pathname;
+const support = new URL("../../examples/support.itdsl", import.meta.url).pathname;
 const root = mkdtempSync(join(tmpdir(), "itdsl-"));
 
 function run(src, target) {
-  return spawnSync(process.execPath, [compiler, src, target, "typescript"], { encoding: "utf8" });
+  return spawnSync(process.execPath, [compiler, src, target, projection], { encoding: "utf8" });
 }
 
+{ const result=run(support, join(root, "support")); assert.equal(result.status, 0, result.stderr); }
 const first = join(root, "first");
 const second = join(root, "second");
-assert.equal(run(source, first).status, 0);
-assert.equal(run(source, second).status, 0);
-assert.equal(readFileSync(join(first, "delivery.ts"), "utf8"), readFileSync(join(second, "delivery.ts"), "utf8"));
-assert.equal(readFileSync(join(first, ".itdsl-normalized.json"), "utf8"), readFileSync(join(second, ".itdsl-normalized.json"), "utf8"));
+{ const result=run(source, first); assert.equal(result.status, 0, result.stderr); }
+{ const result=run(source, second); assert.equal(result.status, 0, result.stderr); }
+assert.equal(readFileSync(join(first, projection === "typescript" ? "generated.ts" : "generated.py"), "utf8"), readFileSync(join(second, projection === "typescript" ? "generated.ts" : "generated.py"), "utf8"));
+assert.equal(readFileSync(join(first, ".itdsl-ir.json"), "utf8"), readFileSync(join(second, ".itdsl-ir.json"), "utf8"));
 
 const invalid = join(root, "invalid.itdsl");
-writeFileSync(invalid, ["@delivery","D: delivery → requested","I: ghost → deliver","R: pickup + dropoff","B: request","S: requested → settled","A: customer { request }","E: request.received"].join("\n"));
+writeFileSync(invalid, ["@delivery","D: delivery → requested","I: ghost → deliver","R: pickup + dropoff","B: request","S: requested → settled","A: customer { request }","E: request.received","T: request.received → done"].join("\n"));
 const failure = run(invalid, join(root, "invalid"));
 assert.notEqual(failure.status, 0);
 assert.match(failure.stderr, /ITDSL_ACTOR_RESOLUTION/);

@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: 22
       - name: Validate compiler
-        run: node docs/DSL/compiler.test.mjs
+        run: node docs/DSL/compiler.test.mjs python
       - name: Generate Python from DSL
         run: node docs/DSL/compiler.mjs examples/delivery.itdsl docs/DSL/python/generated python
       - name: Classify generated language
@@ -41,5 +41,5 @@ jobs:
         run: |
           tmp="$(mktemp -d)"
           node docs/DSL/compiler.mjs examples/delivery.itdsl "$tmp" python >/dev/null
-          cmp docs/DSL/python/generated/delivery.py "$tmp/delivery.py"
-          cmp docs/DSL/python/generated/test_delivery.py "$tmp/test_delivery.py"
+          cmp docs/DSL/python/generated/generated.py "$tmp/generated.py"
+          cmp docs/DSL/python/generated/test_generated.py "$tmp/test_generated.py"
