@@ -14,7 +14,7 @@ function run(src, target) {
   return spawnSync(process.execPath, [compiler, src, target, projection], { encoding: "utf8" });
 }
 
-assert.equal(run(support, join(root, "support")).status, 0);
+{ const result=run(support, join(root, "support")); assert.equal(result.status, 0, result.stderr); }
 const first = join(root, "first");
 const second = join(root, "second");
 assert.equal(run(source, first).status, 0);
