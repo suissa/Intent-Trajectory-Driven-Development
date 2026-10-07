@@ -1,4 +1,4 @@
-# RFC-ITDD-0003 — Behavior Semantic Model
+# RFC-T-DD-0003 — Behavior Semantic Model
 
 ## Status
 Normative.
